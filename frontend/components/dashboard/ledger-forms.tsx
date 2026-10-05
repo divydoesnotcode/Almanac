@@ -323,7 +323,7 @@ export function GoalComposer({
     goal ? String(Number(goal.target_amount)) : ""
   );
   const [current, setCurrent] = useState(
-    goal ? String(Number(goal.current_amount)) : "0"
+    goal ? String(Number(goal.current_amount)) : ""
   );
   const [targetDate, setTargetDate] = useState(
     goal?.target_date ? goal.target_date.slice(0, 10) : ""
@@ -367,7 +367,7 @@ export function GoalComposer({
       if (!goal) {
         setName("");
         setTarget("");
-        setCurrent("0");
+        setCurrent("");
         setTargetDate("");
       }
       if (onSuccess) {
@@ -591,7 +591,7 @@ export function AccountComposer({
   const [name, setName] = useState(account?.name ?? "");
   const [accountType, setAccountType] = useState(account?.account_type ?? defaultType);
   const [balance, setBalance] = useState(
-    account ? String(Number(account.balance)) : "0"
+    account ? String(Number(account.balance)) : ""
   );
   const [busy, setBusy] = useState(false);
   const [tone, setTone] = useState<"idle" | "error" | "ok">("idle");
@@ -623,7 +623,7 @@ export function AccountComposer({
       setMessage(account ? "Account updated" : "Account created");
       if (!account) {
         setName("");
-        setBalance("0");
+        setBalance("");
       }
       if (onSuccess) {
         onSuccess();

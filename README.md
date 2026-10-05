@@ -13,7 +13,7 @@
   <code>CFO // CORE-KERNEL</code> &nbsp;&nbsp;·&nbsp;&nbsp; <code>DOUBLE-ENTRY / INR</code> &nbsp;&nbsp;·&nbsp;&nbsp; <code>SYSTEM RELEASE 0.3.0</code>
 </p>
 
-# AI Personal CFO
+# Almanac
 ### Autonomous Financial Intelligence, Ledger Governance & Cashflow Telemetry
 
 <p align="center">

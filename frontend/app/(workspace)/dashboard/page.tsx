@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 
 export const metadata: Metadata = {
-  title: "Dashboard — AI Personal CFO",
+  title: "Dashboard — Almanac",
   description: "Your private financial command center.",
 };
 

@@ -4,7 +4,7 @@ import { AuthShell } from "../auth-shell";
 import { SignupForm } from "./signup-form";
 
 export const metadata: Metadata = {
-  title: "Create account — AI Personal CFO",
+  title: "Create account — Almanac",
   description:
     "Create a private ledger identity to track accounts, cash flow, and goals.",
 };

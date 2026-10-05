@@ -1,5 +1,5 @@
 """
-SQLAlchemy model registry for AI Personal CFO.
+SQLAlchemy model registry for Almanac.
 
 This module imports every ORM model so that SQLAlchemy's metadata contains
 the complete application schema.

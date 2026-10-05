@@ -178,7 +178,7 @@ export default function Home() {
       <section className="lp-hero">
         <div ref={heroRef} className="cfo-reveal lp-hero-inner">
           <div className="lp-hero-copy">
-            {/* <Kicker>AI Personal CFO · Private financial intelligence</Kicker> */}
+            {/* <Kicker>Almanac · Private financial intelligence</Kicker> */}
             <h1 className="lp-hero-title">
               Your private<br />AI CFO.<br />
               <em>Finally understand</em><br />your money.
@@ -246,7 +246,7 @@ export default function Home() {
           <div className="lp-section-head">
             <Kicker>The Solution</Kicker>
             <h2 className="lp-section-title">
-              AI Personal CFO —<br />
+              Almanac —<br />
               <em>your private financial co-pilot</em>
             </h2>
             <p className="lp-section-lede">

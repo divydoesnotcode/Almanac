@@ -1,5 +1,5 @@
 """
-Database infrastructure for AI Personal CFO.
+Database infrastructure for Almanac.
 
 Technology:
     - PostgreSQL

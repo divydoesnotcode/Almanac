@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { GettingStartedFlow } from "@/components/dashboard/getting-started-flow";
 
 export const metadata: Metadata = {
-  title: "Getting Started — AI Personal CFO",
+  title: "Getting Started — Almanac",
   description: "Initialize your accounts, income streams, and financial policy settings.",
 };
 

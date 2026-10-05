@@ -3,11 +3,12 @@
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useState, type FormEvent } from "react";
+import { useId, useState, useEffect, type FormEvent } from "react";
 import { z } from "zod";
 
 import { fieldErrorsFromValidation, getApiErrorMessage } from "@/lib/api";
 import { signupRequest } from "@/lib/auth-api";
+import { useAuth } from "@/lib/use-auth";
 
 const signupSchema = z
   .object({
@@ -38,13 +39,22 @@ const emptyForm = {
 export function SignupForm() {
   const formId = useId();
   const router = useRouter();
+  const { user, status: authStatus } = useAuth();
   const [values, setValues] = useState(emptyForm);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [status, setStatus] = useState("");
-  const [statusTone, setStatusTone] = useState<"idle" | "error" | "ok">("idle");
+  const [statusTone, setStatusTone] = useState<"idle" | "error" | "ok">(
+    "idle",
+  );
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (authStatus !== "loading" && user) {
+      router.replace("/dashboard");
+    }
+  }, [authStatus, user, router]);
 
   function setField(name: FieldName, value: string) {
     setValues((current) => ({ ...current, [name]: value }));

@@ -1,5 +1,5 @@
 """
-AI Personal CFO — FastAPI Application Entry Point.
+Almanac — FastAPI Application Entry Point.
 
 This module is intentionally kept thin.
 
@@ -47,7 +47,10 @@ from backend.app.api.account import router as account_router
 from backend.app.api.auth import router as auth_router
 from backend.app.api.dashboard import router as dashboard_router
 from backend.app.api.ledger import router as ledger_router
-from backend.app.api.onboarding import router as onboarding_router
+from backend.app.api.onboarding import (
+    getting_started_router,
+    router as onboarding_router,
+)
 from backend.app.config import settings
 
 # Database Connection
@@ -286,6 +289,7 @@ def create_application() -> FastAPI:
     application.include_router(ledger_router)
     application.include_router(account_router)
     application.include_router(onboarding_router)
+    application.include_router(getting_started_router)
 
     return application
 

@@ -26,6 +26,7 @@ from backend.app.services.account_service import get_or_create_preferences
 from backend.app.services.ledger_service import apply_balance_change, balance_delta, visible_categories_query
 
 router = APIRouter(prefix="/api/onboarding", tags=["Onboarding"])
+getting_started_router = APIRouter(prefix="/api/getting-started", tags=["Getting Started"])
 
 logger = logging.getLogger(__name__)
 
@@ -48,8 +49,8 @@ class Step1AccountsRequest(BaseModel):
 
 
 class Step2IncomeRequest(BaseModel):
-    income_source: str = "Primary Employment / Salary"
-    monthly_income: float = Field(default=100000.0, ge=0)
+    income_source: str = Field(min_length=1, max_length=200)
+    monthly_income: float = Field(gt=0)
     record_initial_income: bool = True
     account_id: str | UUID | None = None
 
@@ -67,11 +68,13 @@ class BudgetItem(BaseModel):
 
 
 class Step4BudgetsRequest(BaseModel):
-    budgets: list[BudgetItem] = Field(default_factory=list)
+    budgets: list[BudgetItem] = Field(min_length=1)
 
 
 class OnboardingStatusResponse(BaseModel):
     success: bool = True
+    is_first_time: bool = True
+    show_getting_started: bool = True
     step: int
     completed: bool
     accounts: list[dict[str, Any]]
@@ -80,120 +83,142 @@ class OnboardingStatusResponse(BaseModel):
     budgets: list[dict[str, Any]]
 
 
-# ── Routes ───────────────────────────────────────────────────────────────────
+# ── Core Status Helper ────────────────────────────────────────────────────────
+
+async def get_getting_started_status_data(
+    user: User,
+    db: AsyncSession,
+) -> dict[str, Any]:
+    """
+    Read full onboarding and initialization state directly from PostgreSQL.
+    Determines if the user is creating an account for the first time.
+    """
+    # 1. Accounts
+    acc_res = await db.execute(
+        select(Account)
+        .where(Account.user_id == user.id, Account.is_active == True)  # noqa: E712
+        .order_by(Account.created_at.asc())
+    )
+    accounts = list(acc_res.scalars().all())
+
+    # 2. Preferences
+    pref = await get_or_create_preferences(db, user)
+
+    # 3. Income transactions
+    tx_res = await db.execute(
+        select(Transaction)
+        .where(
+            Transaction.user_id == user.id,
+            Transaction.transaction_type == TransactionType.INCOME,
+        )
+        .order_by(Transaction.created_at.desc())
+        .limit(1)
+    )
+    income_tx = tx_res.scalar_one_or_none()
+
+    # 4. Budgets
+    b_res = await db.execute(
+        select(Budget)
+        .options(selectinload(Budget.category))
+        .where(Budget.user_id == user.id)
+    )
+    budgets = list(b_res.scalars().all())
+
+    has_accounts = len(accounts) > 0
+    has_income = income_tx is not None
+    has_budgets = len(budgets) > 0
+
+    # Determine active step from PostgreSQL preferences
+    is_completed = bool(getattr(pref, "onboarding_completed", False))
+
+    if not has_accounts:
+        step = 1
+    elif is_completed:
+        step = 5
+    else:
+        saved_step = getattr(pref, "onboarding_step", None)
+        step = saved_step if saved_step else (2 if not has_income else (4 if not has_budgets else 5))
+
+    savings_target = 20.0
+    try:
+        if getattr(pref, "monthly_savings_target_pct", None) is not None:
+            savings_target = float(pref.monthly_savings_target_pct)
+    except (ValueError, TypeError):
+        pass
+
+    emergency_months = 6
+    try:
+        if getattr(pref, "emergency_fund_months", None) is not None:
+            emergency_months = int(pref.emergency_fund_months)
+    except (ValueError, TypeError):
+        pass
+
+    risk_tolerance = getattr(pref, "risk_tolerance", "moderate") or "moderate"
+
+    is_first_time = not is_completed
+    show_getting_started = not is_completed
+
+    return {
+        "is_first_time": is_first_time,
+        "show_getting_started": show_getting_started,
+        "step": step,
+        "completed": is_completed,
+        "accounts": [
+            {
+                "id": str(a.id),
+                "name": a.name,
+                "account_type": a.account_type.value if hasattr(a.account_type, "value") else str(a.account_type),
+                "balance": str(a.balance),
+                "description": a.description or "",
+            }
+            for a in accounts
+        ],
+        "income": {
+            "income_source": income_tx.description or income_tx.merchant_name or "Primary Employment / Salary" if income_tx else "Primary Employment / Salary",
+            "monthly_income": str(income_tx.amount) if income_tx and income_tx.amount is not None else "100000",
+            "record_initial_income": income_tx is not None,
+        },
+        "policy": {
+            "savings_target": savings_target,
+            "emergency_months": emergency_months,
+            "risk_tolerance": risk_tolerance,
+        },
+        "budgets": [
+            {
+                "category_id": str(b.category_id),
+                "category_name": b.category.name if b.category else "",
+                "monthly_limit": str(b.monthly_limit) if b.monthly_limit is not None else "0",
+            }
+            for b in budgets
+        ],
+    }
+
+
+# ── Routes: /api/onboarding & /api/getting-started ───────────────────────────
 
 @router.get("/status")
+@router.get("/getting-started")
 async def get_onboarding_status(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),
 ) -> dict[str, Any]:
     """
     Read full onboarding and initialization state directly from PostgreSQL.
-    Survives all browser reloads, device switches, and server restarts.
+    Returns show_getting_started=True only for first-time account creators.
     """
     try:
-        # 1. Accounts
-        acc_res = await db.execute(
-            select(Account)
-            .where(Account.user_id == user.id, Account.is_active == True)  # noqa: E712
-            .order_by(Account.created_at.asc())
-        )
-        accounts = list(acc_res.scalars().all())
-
-        # 2. Preferences
-        pref = await get_or_create_preferences(db, user)
-
-        # 3. Income transactions
-        tx_res = await db.execute(
-            select(Transaction)
-            .where(
-                Transaction.user_id == user.id,
-                Transaction.transaction_type == TransactionType.INCOME,
-            )
-            .order_by(Transaction.created_at.desc())
-            .limit(1)
-        )
-        income_tx = tx_res.scalar_one_or_none()
-
-        # 4. Budgets
-        b_res = await db.execute(
-            select(Budget)
-            .options(selectinload(Budget.category))
-            .where(Budget.user_id == user.id)
-        )
-        budgets = list(b_res.scalars().all())
-
-        has_accounts = len(accounts) > 0
-        has_income = income_tx is not None
-        has_budgets = len(budgets) > 0
-
-        # Determine active step from PostgreSQL preferences
-        is_completed = bool(getattr(pref, "onboarding_completed", False))
-
-        if not has_accounts:
-            step = 1
-        elif is_completed:
-            step = 5
-        else:
-            saved_step = getattr(pref, "onboarding_step", None)
-            step = saved_step if saved_step else (2 if not has_income else (4 if not has_budgets else 5))
-
-        savings_target = 20.0
-        try:
-            if getattr(pref, "monthly_savings_target_pct", None) is not None:
-                savings_target = float(pref.monthly_savings_target_pct)
-        except (ValueError, TypeError):
-            pass
-
-        emergency_months = 6
-        try:
-            if getattr(pref, "emergency_fund_months", None) is not None:
-                emergency_months = int(pref.emergency_fund_months)
-        except (ValueError, TypeError):
-            pass
-
-        risk_tolerance = getattr(pref, "risk_tolerance", "moderate") or "moderate"
-
+        data = await get_getting_started_status_data(user, db)
         return {
             "success": True,
-            "data": {
-                "step": step,
-                "completed": is_completed,
-                "accounts": [
-                    {
-                        "id": str(a.id),
-                        "name": a.name,
-                        "account_type": a.account_type.value if hasattr(a.account_type, "value") else str(a.account_type),
-                        "balance": str(a.balance),
-                        "description": a.description or "",
-                    }
-                    for a in accounts
-                ],
-                "income": {
-                    "income_source": income_tx.description or income_tx.merchant_name or "Primary Employment / Salary" if income_tx else "Primary Employment / Salary",
-                    "monthly_income": str(income_tx.amount) if income_tx and income_tx.amount is not None else "100000",
-                    "record_initial_income": income_tx is not None,
-                },
-                "policy": {
-                    "savings_target": savings_target,
-                    "emergency_months": emergency_months,
-                    "risk_tolerance": risk_tolerance,
-                },
-                "budgets": [
-                    {
-                        "category_id": str(b.category_id),
-                        "category_name": b.category.name if b.category else "",
-                        "monthly_limit": str(b.monthly_limit) if b.monthly_limit is not None else "0",
-                    }
-                    for b in budgets
-                ],
-            },
+            "data": data,
         }
     except Exception as exc:
         logger.exception("Error in get_onboarding_status: %s", exc)
         return {
             "success": True,
             "data": {
+                "is_first_time": True,
+                "show_getting_started": True,
                 "step": 1,
                 "completed": False,
                 "accounts": [],
@@ -212,7 +237,21 @@ async def get_onboarding_status(
         }
 
 
+@getting_started_router.get("")
+@getting_started_router.get("/")
+@getting_started_router.get("/status")
+async def get_getting_started_info(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """
+    Dedicated Getting-Started API for first-time onboarding telemetry.
+    """
+    return await get_onboarding_status(user, db)
+
+
 @router.post("/step-1")
+@getting_started_router.post("/step-1")
 async def save_step_1_accounts(
     payload: Step1AccountsRequest,
     user: User = Depends(get_current_user),
@@ -293,7 +332,118 @@ async def save_step_1_accounts(
         ) from exc
 
 
+@router.delete("/accounts/{account_id}")
+@router.delete("/step-1/{account_id}")
+@getting_started_router.delete("/accounts/{account_id}")
+@getting_started_router.delete("/step-1/{account_id}")
+async def delete_onboarding_account(
+    account_id: UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """
+    Delete a specific onboarding account.
+    If no active accounts remain, resets onboarding step to Step 1.
+    """
+    try:
+        acc_res = await db.execute(
+            select(Account).where(
+                Account.id == account_id,
+                Account.user_id == user.id,
+            )
+        )
+        account = acc_res.scalar_one_or_none()
+        if account is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Account not found",
+            )
+
+        await db.delete(account)
+        await db.flush()
+
+        # Check remaining active accounts
+        remaining_res = await db.execute(
+            select(Account)
+            .where(Account.user_id == user.id, Account.is_active == True)  # noqa: E712
+            .order_by(Account.created_at.asc())
+        )
+        remaining = list(remaining_res.scalars().all())
+
+        pref = await get_or_create_preferences(db, user)
+        if not remaining and not pref.onboarding_completed:
+            pref.onboarding_step = 1
+
+        await db.commit()
+
+        return {
+            "success": True,
+            "message": "Account successfully deleted",
+            "step": pref.onboarding_step if not pref.onboarding_completed else 5,
+            "accounts": [
+                {
+                    "id": str(a.id),
+                    "name": a.name,
+                    "account_type": a.account_type.value if hasattr(a.account_type, "value") else str(a.account_type),
+                    "balance": str(a.balance),
+                    "description": a.description or "",
+                }
+                for a in remaining
+            ],
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Error in delete_onboarding_account: %s", exc)
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unable to delete account: {exc}",
+        ) from exc
+
+
+@router.delete("/accounts")
+@router.delete("/step-1")
+@getting_started_router.delete("/accounts")
+@getting_started_router.delete("/step-1")
+async def delete_all_onboarding_accounts(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """
+    Delete/clear all onboarding accounts for the user and reset to Step 1.
+    """
+    try:
+        acc_res = await db.execute(
+            select(Account).where(Account.user_id == user.id)
+        )
+        accounts = list(acc_res.scalars().all())
+        for acc in accounts:
+            await db.delete(acc)
+
+        pref = await get_or_create_preferences(db, user)
+        if not pref.onboarding_completed:
+            pref.onboarding_step = 1
+
+        await db.commit()
+
+        return {
+            "success": True,
+            "message": f"Successfully deleted {len(accounts)} accounts",
+            "step": 1,
+            "accounts": [],
+        }
+    except Exception as exc:
+        logger.exception("Error in delete_all_onboarding_accounts: %s", exc)
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unable to delete accounts: {exc}",
+        ) from exc
+
+
 @router.post("/step-2")
+@getting_started_router.post("/step-2")
 async def save_step_2_income(
     payload: Step2IncomeRequest,
     user: User = Depends(get_current_user),
@@ -303,6 +453,18 @@ async def save_step_2_income(
     Step 2 API: Persists recurring income and creates initial income transaction.
     """
     try:
+        if not payload.income_source or not payload.income_source.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Primary income source is mandatory.",
+            )
+
+        if payload.monthly_income <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Expected monthly inflow must be greater than 0.",
+            )
+
         acc_res = await db.execute(
             select(Account)
             .where(Account.user_id == user.id, Account.is_active == True)  # noqa: E712
@@ -394,6 +556,7 @@ async def save_step_2_income(
 
 
 @router.post("/step-3")
+@getting_started_router.post("/step-3")
 async def save_step_3_policy(
     payload: Step3PolicyRequest,
     user: User = Depends(get_current_user),
@@ -440,6 +603,7 @@ async def save_step_3_policy(
 
 
 @router.post("/step-4")
+@getting_started_router.post("/step-4")
 async def save_step_4_budgets(
     payload: Step4BudgetsRequest,
     user: User = Depends(get_current_user),
@@ -481,6 +645,12 @@ async def save_step_4_budgets(
 
             saved_budgets.append(budget)
 
+        if len(saved_budgets) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="At least one valid category budget with a monthly limit (> 0) is mandatory.",
+            )
+
         pref = await get_or_create_preferences(db, user)
         curr_step = int(pref.onboarding_step) if getattr(pref, "onboarding_step", None) is not None else 1
         pref.onboarding_step = max(curr_step, 5)
@@ -503,7 +673,118 @@ async def save_step_4_budgets(
         ) from exc
 
 
+@router.delete("/budgets/{category_id}")
+@router.delete("/step-4/{category_id}")
+@getting_started_router.delete("/budgets/{category_id}")
+@getting_started_router.delete("/step-4/{category_id}")
+async def delete_onboarding_budget(
+    category_id: UUID,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """
+    Delete a specific onboarding category budget.
+    """
+    try:
+        b_res = await db.execute(
+            select(Budget).where(
+                Budget.user_id == user.id,
+                Budget.category_id == category_id,
+            )
+        )
+        budget = b_res.scalar_one_or_none()
+        if budget is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Budget not found",
+            )
+
+        await db.delete(budget)
+        await db.flush()
+
+        remaining_res = await db.execute(
+            select(Budget)
+            .options(selectinload(Budget.category))
+            .where(Budget.user_id == user.id)
+        )
+        remaining = list(remaining_res.scalars().all())
+
+        pref = await get_or_create_preferences(db, user)
+        if not remaining and not pref.onboarding_completed:
+            curr_step = int(pref.onboarding_step) if getattr(pref, "onboarding_step", None) is not None else 1
+            if curr_step > 4:
+                pref.onboarding_step = 4
+
+        await db.commit()
+
+        return {
+            "success": True,
+            "message": "Budget cap successfully deleted",
+            "step": pref.onboarding_step if not pref.onboarding_completed else 5,
+            "budgets": [
+                {
+                    "category_id": str(b.category_id),
+                    "category_name": b.category.name if b.category else "",
+                    "monthly_limit": str(b.monthly_limit) if b.monthly_limit is not None else "0",
+                }
+                for b in remaining
+            ],
+        }
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Error in delete_onboarding_budget: %s", exc)
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unable to delete budget: {exc}",
+        ) from exc
+
+
+@router.delete("/budgets")
+@router.delete("/step-4")
+@getting_started_router.delete("/budgets")
+@getting_started_router.delete("/step-4")
+async def delete_all_onboarding_budgets(
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db_session),
+) -> dict[str, Any]:
+    """
+    Delete/clear all category budgets for the user.
+    """
+    try:
+        b_res = await db.execute(
+            select(Budget).where(Budget.user_id == user.id)
+        )
+        budgets = list(b_res.scalars().all())
+        for b in budgets:
+            await db.delete(b)
+
+        pref = await get_or_create_preferences(db, user)
+        if not pref.onboarding_completed:
+            curr_step = int(pref.onboarding_step) if getattr(pref, "onboarding_step", None) is not None else 1
+            if curr_step > 4:
+                pref.onboarding_step = 4
+
+        await db.commit()
+
+        return {
+            "success": True,
+            "message": f"Successfully deleted {len(budgets)} budget limits",
+            "step": 4,
+            "budgets": [],
+        }
+    except Exception as exc:
+        logger.exception("Error in delete_all_onboarding_budgets: %s", exc)
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unable to delete budgets: {exc}",
+        ) from exc
+
+
 @router.post("/complete")
+@getting_started_router.post("/complete")
 async def complete_onboarding(
     user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db_session),

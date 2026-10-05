@@ -1,4 +1,4 @@
-"""User ORM model for AI Personal CFO."""
+"""User ORM model for Almanac."""
 
 from __future__ import annotations
 

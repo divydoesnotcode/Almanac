@@ -4,8 +4,8 @@ import { AuthShell } from "../auth-shell";
 import { SigninForm } from "./signin-form";
 
 export const metadata: Metadata = {
-  title: "Sign in — AI Personal CFO",
-  description: "Return to an existing AI Personal CFO ledger identity.",
+  title: "Sign in — Almanac",
+  description: "Return to an existing Almanac ledger identity.",
 };
 
 export default function SigninPage() {

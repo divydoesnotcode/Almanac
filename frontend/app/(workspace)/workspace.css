@@ -2041,8 +2041,11 @@ html[data-density="compact"] .dash-subpage {
 /* ── Getting Started / Onboarding Flow ── */
 .dash-onboarding-container {
   max-width: 860px;
+  width: 100%;
+  min-width: 0;
   margin: 0 auto;
   padding: 1rem 0 3rem;
+  scroll-margin-top: 0.5rem;
 }
 
 .dash-onboarding-header {
@@ -2053,7 +2056,8 @@ html[data-density="compact"] .dash-subpage {
 .dash-onboarding-kicker {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
   font-family: var(--cfo-mono);
   font-size: 0.7rem;
   letter-spacing: 0.14em;
@@ -2069,9 +2073,10 @@ html[data-density="compact"] .dash-subpage {
 
 .dash-onboarding-header h1 {
   font-family: var(--cfo-display);
-  font-size: 1.85rem;
+  font-size: clamp(1.7rem, 4.6vw, 2.15rem);
   font-weight: 700;
   letter-spacing: -0.02em;
+  line-height: 1.12;
   margin: 0 0 0.5rem;
   color: var(--cfo-ink);
 }
@@ -2083,13 +2088,44 @@ html[data-density="compact"] .dash-subpage {
   margin: 0;
 }
 
+.dash-onboarding-meter {
+  display: none;
+  height: 3px;
+  margin-top: 1.15rem;
+  background: var(--cfo-line);
+}
+
+.dash-onboarding-meter > span {
+  display: block;
+  height: 100%;
+  width: calc(var(--onboard-step, 1) * 20%);
+  background: var(--cfo-accent);
+}
+
+.dash-onboarding-now {
+  display: none;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0.7rem 0 0;
+  font-family: var(--cfo-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cfo-ink-dim);
+}
+
+.dash-onboarding-now strong {
+  color: var(--cfo-ink);
+  font-weight: 500;
+}
+
 .dash-onboarding-stepper {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.4rem;
   margin-top: 1.5rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-  scrollbar-width: none;
+  padding-bottom: 0.15rem;
 }
 
 .dash-onboarding-stepper::-webkit-scrollbar {
@@ -2114,6 +2150,12 @@ html[data-density="compact"] .dash-subpage {
   transition: all 0.15s ease;
 }
 
+.dash-onboarding-step-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .dash-onboarding-step-btn.completed {
   color: var(--cfo-ink);
   border-color: var(--cfo-line-strong);
@@ -2131,6 +2173,20 @@ html[data-density="compact"] .dash-subpage {
 
 .dash-onboarding-panel {
   margin-top: 1rem;
+  min-width: 0;
+}
+
+.dash-onboarding-panel .cfo-panel-head {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  row-gap: 0.35rem;
+}
+
+.dash-onboarding-panel .cfo-panel-head strong {
+  flex: 1 1 12rem;
+  min-width: 0;
+  line-height: 1.45;
+  white-space: normal;
 }
 
 .dash-onboarding-body {
@@ -2151,6 +2207,50 @@ html[data-density="compact"] .dash-subpage {
   margin-bottom: 1.25rem;
 }
 
+.dash-onboarding-budgets-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.dash-onboarding-budget-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: flex-end;
+  gap: 0.75rem;
+  padding: 0.75rem 0.95rem;
+  background: color-mix(in srgb, var(--cfo-bg-elevated) 80%, transparent);
+  border: 1px solid var(--cfo-line);
+}
+
+.dash-onboarding-budget-row .cfo-field {
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.dash-onboarding-budget-del {
+  height: 38px;
+  width: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--cfo-line);
+  color: var(--cfo-danger, #d9534f);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background-color var(--cfo-duration) var(--cfo-ease),
+    border-color var(--cfo-duration) var(--cfo-ease),
+    color var(--cfo-duration) var(--cfo-ease);
+}
+
+.dash-onboarding-budget-del:hover {
+  background: color-mix(in srgb, var(--cfo-danger, #d9534f) 10%, transparent);
+  border-color: var(--cfo-danger, #d9534f);
+}
+
 .dash-onboarding-card {
   padding: 1.25rem;
   background: color-mix(in srgb, var(--cfo-bg-elevated) 80%, transparent);
@@ -2168,7 +2268,7 @@ html[data-density="compact"] .dash-subpage {
 
 .dash-onboarding-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
   gap: 1rem;
 }
 
@@ -2190,6 +2290,73 @@ html[data-density="compact"] .dash-subpage {
   gap: 1rem;
 }
 
+.dash-onboarding-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  margin-left: auto;
+}
+
+.dash-onboarding-btn-short {
+  display: none;
+}
+
+.dash-onboarding-remove {
+  color: var(--cfo-danger);
+}
+
+.dash-onboarding-check {
+  margin-top: 1.25rem;
+  padding: 0.85rem;
+  background: color-mix(in srgb, var(--cfo-bg-elevated) 90%, var(--cfo-line));
+  border: 1px solid var(--cfo-line);
+}
+
+.dash-onboarding-check label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-family: var(--cfo-mono);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.dash-onboarding-check input {
+  accent-color: var(--cfo-accent);
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.12rem;
+  flex-shrink: 0;
+}
+
+.dash-onboarding-check p {
+  margin: 0.45rem 0 0 1.9rem;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--cfo-ink-dim);
+}
+
+.dash-onboarding-policy-block + .dash-onboarding-policy-block {
+  margin-top: 1.35rem;
+}
+
+.dash-onboarding-policy-block p {
+  margin: 0.25rem 0 0.7rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--cfo-ink-dim);
+}
+
+.dash-onboarding-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
 .dash-onboarding-meta {
   font-family: var(--cfo-mono);
   font-size: 0.82rem;
@@ -2207,6 +2374,9 @@ html[data-density="compact"] .dash-subpage {
 }
 
 .dash-onboarding-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.45rem 0.85rem;
   font-family: var(--cfo-mono);
   font-size: 0.78rem;
@@ -2229,9 +2399,33 @@ html[data-density="compact"] .dash-subpage {
   background: color-mix(in srgb, var(--cfo-accent) 10%, transparent);
 }
 
+.dash-onboarding-pill--choice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  height: auto;
+  min-height: 52px;
+  padding: 0.65rem 0.8rem;
+  text-align: left;
+  white-space: normal;
+}
+
+.dash-onboarding-pill--choice small {
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  color: var(--cfo-ink-faint);
+}
+
+.dash-onboarding-pill--choice.active small {
+  color: color-mix(in srgb, var(--cfo-accent) 72%, var(--cfo-ink));
+}
+
 .dash-onboarding-summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
   gap: 1rem;
   padding: 1.25rem;
   background: color-mix(in srgb, var(--cfo-bg-elevated) 80%, transparent);
@@ -2248,7 +2442,9 @@ html[data-density="compact"] .dash-subpage {
   margin: 0;
   font-family: var(--cfo-mono);
   font-size: 0.82rem;
+  line-height: 1.45;
   color: var(--cfo-ink);
+  overflow-wrap: anywhere;
 }
 
 .dash-onboarding-notice {
@@ -2263,6 +2459,12 @@ html[data-density="compact"] .dash-subpage {
   line-height: 1.5;
 }
 
+.dash-onboarding-notice svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--cfo-accent);
+}
+
 .dash-onboarding-notice p {
   margin: 0;
 }
@@ -2274,7 +2476,169 @@ html[data-density="compact"] .dash-subpage {
   color: var(--cfo-danger);
   font-family: var(--cfo-mono);
   font-size: 0.82rem;
+  line-height: 1.45;
   margin-bottom: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.dash-onboarding-top-phase {
+  color: var(--cfo-accent);
+}
+
+@media (max-width: 720px) {
+  .dash-root--onboarding .dash-content-inner {
+    padding: 0.85rem 0.85rem calc(1.25rem + env(safe-area-inset-bottom));
+  }
+
+  .dash-root--onboarding .dash-top {
+    padding-top: env(safe-area-inset-top);
+    height: calc(52px + env(safe-area-inset-top));
+  }
+
+  .dash-onboarding-top-phase {
+    display: none;
+  }
+
+  .dash-onboarding-container {
+    padding: 0.15rem 0 0.5rem;
+  }
+
+  .dash-onboarding-header {
+    margin-bottom: 1.15rem;
+  }
+
+  .dash-onboarding-header p {
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .dash-onboarding-meter,
+  .dash-onboarding-now {
+    display: flex;
+  }
+
+  .dash-onboarding-meter {
+    display: block;
+  }
+
+  .dash-onboarding-stepper {
+    margin-top: 0.85rem;
+    gap: 0.35rem;
+  }
+
+  .dash-onboarding-step-btn {
+    position: relative;
+    flex: 1 0 44px;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+  }
+
+  .dash-onboarding-step-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .dash-onboarding-panel {
+    padding: 1rem 0.9rem 1.05rem;
+  }
+
+  .dash-onboarding-panel .cfo-panel-head > span {
+    display: none;
+  }
+
+  .dash-onboarding-body {
+    padding: 0;
+  }
+
+  .dash-onboarding-hint {
+    font-size: 0.9rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .dash-onboarding-card {
+    padding: 0.95rem;
+  }
+
+  .dash-onboarding-grid,
+  .dash-onboarding-summary,
+  .dash-onboarding-choices {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-onboarding-container .cfo-input,
+  .dash-onboarding-container select.cfo-input {
+    height: 48px;
+    font-size: 16px;
+  }
+
+  .dash-onboarding-pill {
+    min-height: 44px;
+    padding: 0.55rem 0.9rem;
+  }
+
+  .dash-onboarding-remove {
+    min-height: 44px;
+    padding: 0 0.85rem;
+  }
+
+  .dash-onboarding-add-btn,
+  .dash-onboarding-footer,
+  .dash-onboarding-actions {
+    width: 100%;
+  }
+
+  .dash-onboarding-footer {
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: 1.35rem;
+    gap: 0.85rem;
+  }
+
+  .dash-onboarding-actions {
+    flex-direction: column;
+    align-items: stretch;
+    margin-left: 0;
+    gap: 0.55rem;
+  }
+
+  .dash-onboarding-actions .cfo-btn,
+  .dash-onboarding-add-btn {
+    width: 100%;
+    min-height: 48px;
+    letter-spacing: 0.08em;
+    padding: 0 0.85rem;
+  }
+
+  .dash-onboarding-btn-long {
+    display: none;
+  }
+
+  .dash-onboarding-btn-short {
+    display: inline;
+  }
+
+  .dash-onboarding-meta {
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .dash-onboarding-check label {
+    font-size: 0.84rem;
+  }
+
+  .dash-onboarding-check p {
+    margin-left: 0;
+    margin-top: 0.55rem;
+  }
 }
 
 

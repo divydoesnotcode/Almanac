@@ -1,5 +1,5 @@
 """
-SQLAlchemy ORM foundation for AI Personal CFO.
+SQLAlchemy ORM foundation for Almanac.
 
 This module defines the shared database model infrastructure used by every
 SQLAlchemy model in the application.

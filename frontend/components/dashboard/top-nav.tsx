@@ -98,7 +98,8 @@ export function TopNav({
       <header className="dash-top" ref={rootRef}>
         <div className="dash-top-left">
           <p className="dash-top-title" style={{ display: "block" }}>
-            AI Personal <span>CFO</span> &nbsp;·&nbsp; <span>INITIALIZATION</span>
+            AI Personal <span>CFO</span>
+            <span className="dash-onboarding-top-phase"> · Initialization</span>
           </p>
         </div>
         <div className="dash-top-right">
