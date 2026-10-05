@@ -1,5 +1,5 @@
 """
-Category ORM model for AI Personal CFO.
+Category ORM model for Almanac.
 
 A Category classifies financial transactions.
 

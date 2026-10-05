@@ -13,11 +13,6 @@ import { X } from "lucide-react";
 
 import { applyLocalDensity, readLocalDensity } from "@/lib/account-api";
 import { getApiErrorMessage } from "@/lib/api";
-import {
-  POST_LOGIN_GUARD_ORIGIN,
-  POST_LOGIN_GUARD_PENDING,
-  POST_LOGIN_GUARD_STATE,
-} from "@/lib/auth-navigation";
 import { AskCfoProvider } from "@/lib/dashboard/ask-cfo";
 import { useDashboard } from "@/lib/dashboard/use-dashboard";
 import { useAuth } from "@/lib/use-auth";
@@ -55,16 +50,22 @@ export function AppShell({ children }: { children: ReactNode }) {
     (!loading && Boolean(data) && !data?.hasLedger);
 
   useEffect(() => {
+    if (onboardingLoading) return;
     if (
-      !onboardingLoading &&
       !onboardingDone &&
       pathname !== "/getting-started" &&
       pathname !== "/onboarding" &&
       pathname !== "/dashboard"
     ) {
       router.replace("/dashboard");
+    } else if (
+      onboardingDone &&
+      (pathname === "/getting-started" || pathname === "/onboarding")
+    ) {
+      router.replace("/dashboard");
     }
   }, [onboardingLoading, onboardingDone, pathname, router]);
+
   const collapsed = useSyncExternalStore(
     subscribeSidebar,
     sidebarCollapsed,
@@ -75,8 +76,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [logoutBusy, setLogoutBusy] = useState(false);
   const [logoutError, setLogoutError] = useState("");
   const cancelLogoutRef = useRef<HTMLButtonElement>(null);
-  const logoutFromBackRef = useRef(false);
-  const guardOriginRef = useRef<string | null>(null);
 
   useEffect(() => {
     applyLocalDensity(readLocalDensity());
@@ -94,8 +93,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     cancelLogoutRef.current?.focus();
   }, [logoutBusy, logoutOpen]);
 
-  function requestLogout(fromBack = false) {
-    logoutFromBackRef.current = fromBack;
+  function requestLogout() {
     setLogoutError("");
     setLogoutOpen(true);
   }
@@ -104,13 +102,6 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (logoutBusy) return;
     setLogoutOpen(false);
     setLogoutError("");
-
-    if (logoutFromBackRef.current) {
-      logoutFromBackRef.current = false;
-      // Return to the guard entry instead of pushing or replacing history.
-      // This leaves the original sign-in entry untouched for the next Back.
-      window.history.forward();
-    }
   }
 
   async function confirmLogout() {
@@ -126,63 +117,6 @@ export function AppShell({ children }: { children: ReactNode }) {
       setLogoutBusy(false);
     }
   }
-
-  useEffect(() => {
-    if (window.history.state?.[POST_LOGIN_GUARD_STATE]) {
-      guardOriginRef.current =
-        window.history.state[POST_LOGIN_GUARD_ORIGIN] ?? null;
-      return;
-    }
-
-    if (window.sessionStorage.getItem(POST_LOGIN_GUARD_PENDING) !== "1") {
-      return;
-    }
-
-    window.sessionStorage.removeItem(POST_LOGIN_GUARD_PENDING);
-    const origin = window.crypto.randomUUID();
-    const currentState = window.history.state ?? {};
-    guardOriginRef.current = origin;
-    window.history.replaceState(
-      { ...currentState, [POST_LOGIN_GUARD_ORIGIN]: origin },
-      "",
-      window.location.href,
-    );
-    window.history.pushState(
-      {
-        ...window.history.state,
-        [POST_LOGIN_GUARD_ORIGIN]: origin,
-        [POST_LOGIN_GUARD_STATE]: true,
-      },
-      "",
-      window.location.href,
-    );
-  }, []);
-
-  useEffect(() => {
-    function onPopState(event: PopStateEvent) {
-      if (event.state?.[POST_LOGIN_GUARD_STATE]) return;
-
-      // While the dialog is open, keep Back from travelling beyond the
-      // authenticated entry. This does not add or replace a history entry.
-      if (logoutOpen) {
-        window.history.forward();
-        return;
-      }
-
-      // The only intercepted transition is guard → its tagged original
-      // workspace entry. Browser Back between other authenticated pages
-      // remains unchanged.
-      if (
-        guardOriginRef.current &&
-        event.state?.[POST_LOGIN_GUARD_ORIGIN] === guardOriginRef.current
-      ) {
-        requestLogout(true);
-      }
-    }
-
-    window.addEventListener("popstate", onPopState);
-    return () => window.removeEventListener("popstate", onPopState);
-  }, [logoutOpen]);
 
   function toggleCollapsed() {
     const next = !sidebarCollapsed();
@@ -263,7 +197,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </span>
                   <span className="dash-brand-copy">
                     <strong>CFO // LEDGER</strong>
-                    <span>AI Personal CFO</span>
+                    <span>Almanac</span>
                   </span>
                   <button
                     type="button"

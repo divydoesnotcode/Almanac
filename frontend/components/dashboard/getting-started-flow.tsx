@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowRight,
@@ -18,9 +18,11 @@ import { listCategories, type LedgerCategory } from "@/lib/ledger-api";
 import {
   fetchOnboardingStatus,
   submitStep1Accounts,
+  deleteOnboardingAccount,
   submitStep2Income,
   submitStep3Policy,
   submitStep4Budgets,
+  deleteOnboardingBudget,
   submitCompleteOnboarding,
 } from "@/lib/onboarding-api";
 import { setGlobalOnboardingCompleted } from "@/lib/use-onboarding";
@@ -36,27 +38,79 @@ interface AccountDraft {
 }
 
 interface BudgetDraft {
+  id: string;
   category_id: string;
   category_name: string;
   limit: string;
 }
 
+const STEPS = [
+  { num: 1, label: "Accounts" },
+  { num: 2, label: "Income" },
+  { num: 3, label: "Policy" },
+  { num: 4, label: "Budgets" },
+  { num: 5, label: "Review" },
+] as const;
+
 const DEFAULT_ACCOUNTS: AccountDraft[] = [
   {
     id: "1",
-    name: "Primary Salary / Checking",
+    name: "",
     account_type: "bank",
-    balance: "50000",
-    description: "Main operating account",
-  },
-  {
-    id: "2",
-    name: "Physical Cash Reserve",
-    account_type: "cash",
-    balance: "5000",
-    description: "Cash in hand & wallet",
+    balance: "",
+    description: "",
   },
 ];
+
+const DEFAULT_BUDGETS: BudgetDraft[] = [
+  {
+    id: "1",
+    category_id: "",
+    category_name: "",
+    limit: "",
+  },
+];
+
+function StepActions({
+  onBack,
+  onNext,
+  busy,
+  busyLabel,
+  nextLabel,
+  nextShort,
+  icon,
+  disabled = false,
+}: {
+  onBack?: () => void;
+  onNext: () => void;
+  busy: boolean;
+  busyLabel: string;
+  nextLabel: string;
+  nextShort: string;
+  icon: ReactNode;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="dash-onboarding-actions">
+      {onBack ? (
+        <button type="button" className="cfo-btn cfo-btn--ghost" disabled={busy} onClick={onBack}>
+          <ArrowLeft size={14} /> Back
+        </button>
+      ) : null}
+      <button type="button" className="cfo-btn cfo-btn--fill" disabled={busy || disabled} onClick={onNext}>
+        {busy ? (
+          busyLabel
+        ) : (
+          <>
+            <span className="dash-onboarding-btn-long">{nextLabel}</span>
+            <span className="dash-onboarding-btn-short">{nextShort}</span>
+          </>
+        )}{" "}
+        {icon}
+      </button>
+    </div>
+  );
+}
 
 export function GettingStartedFlow({
   onCompleted,
@@ -64,6 +118,8 @@ export function GettingStartedFlow({
   onCompleted?: () => void;
 }) {
   const router = useRouter();
+  const topRef = useRef<HTMLDivElement>(null);
+  const skipScroll = useRef(true);
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [busy, setBusy] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -74,9 +130,9 @@ export function GettingStartedFlow({
   const [accounts, setAccounts] = useState<AccountDraft[]>(DEFAULT_ACCOUNTS);
 
   // Step 2: Income
-  const [incomeSource, setIncomeSource] = useState("Primary Employment / Salary");
-  const [monthlyIncome, setMonthlyIncome] = useState("100000");
-  const [recordInitialIncome, setRecordInitialIncome] = useState(true);
+  const [incomeSource, setIncomeSource] = useState("");
+  const [monthlyIncome, setMonthlyIncome] = useState("");
+  const [recordInitialIncome, setRecordInitialIncome] = useState(false);
 
   // Step 3: Financial Policy
   const [savingsTarget, setSavingsTarget] = useState(20);
@@ -84,7 +140,9 @@ export function GettingStartedFlow({
   const [riskTolerance, setRiskTolerance] = useState<"conservative" | "moderate" | "aggressive">("moderate");
 
   // Step 4: Budget Caps
-  const [budgets, setBudgets] = useState<BudgetDraft[]>([]);
+  const [budgets, setBudgets] = useState<BudgetDraft[]>(DEFAULT_BUDGETS);
+
+  const [isCompletedUser, setIsCompletedUser] = useState(false);
 
   // 1. Fetch persistent status directly from PostgreSQL on mount
   useEffect(() => {
@@ -93,6 +151,11 @@ export function GettingStartedFlow({
         setCategories(cats || []);
 
         if (dbState) {
+          if (dbState.completed || dbState.show_getting_started === false) {
+            setIsCompletedUser(true);
+            router.replace("/dashboard");
+            return;
+          }
           if (dbState.step) setStep(dbState.step);
           if (dbState.accounts && dbState.accounts.length > 0) {
             setAccounts(dbState.accounts as AccountDraft[]);
@@ -118,49 +181,46 @@ export function GettingStartedFlow({
 
           if (dbState.budgets && dbState.budgets.length > 0) {
             setBudgets(
-              dbState.budgets.map((b) => ({
+              dbState.budgets.map((b, idx) => ({
+                id: b.category_id || String(idx + 1),
                 category_id: b.category_id,
                 category_name: b.category_name || "",
-                limit: String(b.monthly_limit),
+                limit: String(b.monthly_limit || ""),
               }))
             );
           } else {
-            // Seed default budget suggestions
-            const defaults: BudgetDraft[] = [];
-            const findCat = (keywords: string[]) =>
-              cats.find((c) => keywords.some((k) => c.name.toLowerCase().includes(k)));
-
-            const housing = findCat(["rent", "housing", "mortgage", "home"]);
-            if (housing) defaults.push({ category_id: housing.id, category_name: housing.name, limit: "25000" });
-
-            const food = findCat(["grocer", "food", "dining", "meal"]);
-            if (food) defaults.push({ category_id: food.id, category_name: food.name, limit: "15000" });
-
-            const utils = findCat(["utilit", "bill", "electricity", "recharge"]);
-            if (utils) defaults.push({ category_id: utils.id, category_name: utils.name, limit: "5000" });
-
-            const transport = findCat(["transport", "fuel", "travel", "cab", "commute"]);
-            if (transport) defaults.push({ category_id: transport.id, category_name: transport.name, limit: "6000" });
-
-            setBudgets(defaults);
+            setBudgets(DEFAULT_BUDGETS);
           }
         }
       })
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => {
         setInitialLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (initialLoading) return;
+    if (skipScroll.current) {
+      skipScroll.current = false;
+      return;
+    }
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    topRef.current?.scrollIntoView({
+      block: "start",
+      behavior: reduce ? "auto" : "smooth",
+    });
+  }, [step, initialLoading]);
 
   const addAccountRow = () => {
     setAccounts((prev) => [
       ...prev,
       {
         id: String(Date.now()),
-        name: "Secondary Bank Account",
+        name: "",
         account_type: "bank",
-        balance: "10000",
-        description: "Emergency / Alternate account",
+        balance: "",
+        description: "",
       },
     ]);
   };
@@ -168,6 +228,9 @@ export function GettingStartedFlow({
   const removeAccountRow = (id: string) => {
     if (accounts.length <= 1) return;
     setAccounts((prev) => prev.filter((a) => a.id !== id));
+    if (id && id.includes("-") && id.length === 36) {
+      deleteOnboardingAccount(id).catch(() => { });
+    }
   };
 
   const updateAccountDraft = (id: string, key: keyof AccountDraft, val: string) => {
@@ -176,14 +239,76 @@ export function GettingStartedFlow({
     );
   };
 
-  const updateBudgetLimit = (catId: string, limitVal: string) => {
+  const addBudgetRow = () => {
+    setBudgets((prev) => [
+      ...prev,
+      {
+        id: String(Date.now()),
+        category_id: "",
+        category_name: "",
+        limit: "",
+      },
+    ]);
+  };
+
+  const removeBudgetRow = (id: string) => {
+    if (budgets.length <= 1) return;
+    const targetBudget = budgets.find((b) => b.id === id);
+    setBudgets((prev) => prev.filter((b) => b.id !== id));
+    if (
+      targetBudget?.category_id &&
+      targetBudget.category_id.includes("-") &&
+      targetBudget.category_id.length === 36
+    ) {
+      deleteOnboardingBudget(targetBudget.category_id).catch(() => { });
+    }
+  };
+
+  const updateBudgetDraft = (id: string, key: "category_id" | "limit", val: string) => {
     setBudgets((prev) =>
-      prev.map((b) => (b.category_id === catId ? { ...b, limit: limitVal } : b))
+      prev.map((b) => {
+        if (b.id !== id) return b;
+        if (key === "category_id") {
+          const selectedCat = categories.find((c) => c.id === val);
+          return {
+            ...b,
+            category_id: val,
+            category_name: selectedCat?.name || "",
+          };
+        }
+        return { ...b, [key]: val };
+      })
     );
   };
 
+  const isStep1Valid =
+    accounts.length > 0 &&
+    accounts.every(
+      (a) => a.name.trim().length > 0 && Boolean(a.account_type && a.account_type.trim().length > 0),
+    );
+
+  const isStep2Valid =
+    incomeSource.trim().length > 0 &&
+    monthlyIncome.trim().length > 0 &&
+    !isNaN(parseFloat(monthlyIncome)) &&
+    parseFloat(monthlyIncome) > 0;
+
+  const isStep4Valid =
+    budgets.length >= 1 &&
+    budgets.every(
+      (b) =>
+        b.category_id.trim().length > 0 &&
+        b.limit.trim().length > 0 &&
+        !isNaN(parseFloat(b.limit)) &&
+        parseFloat(b.limit) > 0,
+    );
+
   // STEP 1 PROCEED: Calls Step-1 API
   const handleProceedStep1 = async () => {
+    if (!isStep1Valid) {
+      setError("Account Name and Account Type are mandatory for all accounts.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -201,6 +326,10 @@ export function GettingStartedFlow({
 
   // STEP 2 PROCEED: Calls Step-2 API
   const handleProceedStep2 = async () => {
+    if (!isStep2Valid) {
+      setError("Primary income source and expected monthly inflow (> 0) are mandatory.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -237,10 +366,20 @@ export function GettingStartedFlow({
 
   // STEP 4 PROCEED: Calls Step-4 API
   const handleProceedStep4 = async () => {
+    if (!isStep4Valid) {
+      setError("At least 1 budget with a selected category and monthly cap (> 0) is mandatory.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
-      await submitStep4Budgets(budgets);
+      await submitStep4Budgets(
+        budgets.map((b) => ({
+          category_id: b.category_id,
+          category_name: b.category_name,
+          limit: b.limit,
+        }))
+      );
       setStep(5);
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to save budget limits"));
@@ -261,7 +400,7 @@ export function GettingStartedFlow({
       if (onCompleted) {
         onCompleted();
       } else {
-        router.push("/dashboard");
+        router.replace("/dashboard");
       }
     } catch (err) {
       setError(getApiErrorMessage(err, "Unable to finalize workspace"));
@@ -269,49 +408,64 @@ export function GettingStartedFlow({
     }
   };
 
-  if (initialLoading) {
+  if (initialLoading || isCompletedUser) {
     return (
       <div className="dash-onboarding-container" style={{ textAlign: "center", padding: "4rem 0" }}>
-        <p className="cfo-coords">Loading ledger initialization state from database…</p>
+        <p className="cfo-coords">
+          {isCompletedUser
+            ? "Workspace setup already complete. Opening dashboard…"
+            : "Loading ledger initialization state from database…"}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="dash-onboarding-container">
+    <div
+      className="dash-onboarding-container"
+      ref={topRef}
+      style={{ "--onboard-step": step } as CSSProperties}
+    >
       {/* Header Progress Matrix */}
       <div className="dash-onboarding-header">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "0.5rem" }}>
-          <div className="dash-onboarding-kicker">
-            <span>INITIALIZATION MATRIX</span>
-            <span className="dash-onboarding-dot">● DB PERSISTED</span>
-          </div>
+        <div className="dash-onboarding-kicker">
+          <span>Initialization matrix</span>
+          <span className="dash-onboarding-dot">● Saved as you go</span>
         </div>
-        <h1>Welcome to AI Personal CFO</h1>
+        <h1>Welcome to Almanac</h1>
         <p>
-          Configure your starting liquidity, income streams, and financial policies.
-          Every step is permanently committed to your PostgreSQL database.
+          Set your accounts, income, and a few policy targets. Each step is saved to your ledger, and you can change any of it later.
         </p>
 
-        {/* Stepper Bar */}
-        <div className="dash-onboarding-stepper">
-          {[
-            { num: 1, label: "01 / Accounts & Capital" },
-            { num: 2, label: "02 / Inflows & Salary" },
-            { num: 3, label: "03 / Financial Policy" },
-            { num: 4, label: "04 / Budget Caps" },
-            { num: 5, label: "05 / Review & Launch" },
-          ].map((s) => (
-            <button
-              key={s.num}
-              type="button"
-              className={`dash-onboarding-step-btn ${step === s.num ? "active" : step > s.num ? "completed" : ""}`}
-              onClick={() => !busy && setStep(s.num as any)}
-            >
-              <span className="dash-onboarding-step-num">{s.num}</span>
-              <span className="dash-onboarding-step-title">{s.label}</span>
-            </button>
-          ))}
+        <div className="dash-onboarding-meter" aria-hidden="true">
+          <span />
+        </div>
+        <p className="dash-onboarding-now">
+          <span>Step {step} of {STEPS.length}</span>
+          <strong>{STEPS[step - 1].label}</strong>
+        </p>
+
+        <div className="dash-onboarding-stepper" aria-label="Setup steps">
+          {STEPS.map((s) => {
+            const isStepDisabled =
+              busy ||
+              (s.num > 1 && !isStep1Valid) ||
+              (s.num > 2 && !isStep2Valid) ||
+              (s.num > 4 && !isStep4Valid);
+            return (
+              <button
+                key={s.num}
+                type="button"
+                disabled={isStepDisabled}
+                aria-current={step === s.num ? "step" : undefined}
+                className={`dash-onboarding-step-btn ${step === s.num ? "active" : step > s.num ? "completed" : ""}`}
+                onClick={() => !isStepDisabled && setStep(s.num)}
+              >
+                <span className="dash-onboarding-step-num">{s.num}</span>
+                <span className="dash-onboarding-step-title">{s.label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -342,8 +496,7 @@ export function GettingStartedFlow({
                     {accounts.length > 1 && (
                       <button
                         type="button"
-                        className="dash-quiet"
-                        style={{ color: "var(--cfo-danger)" }}
+                        className="dash-quiet dash-onboarding-remove"
                         onClick={() => removeAccountRow(acc.id)}
                       >
                         <Trash2 size={14} /> Remove
@@ -352,9 +505,12 @@ export function GettingStartedFlow({
                   </div>
                   <div className="dash-onboarding-grid">
                     <label className="cfo-field">
-                      <span className="cfo-label">Account Name</span>
+                      <span className="cfo-label">
+                        Account Name <abbr title="Mandatory" style={{ color: "var(--cfo-accent, #c45c26)", textDecoration: "none" }}>*</abbr>
+                      </span>
                       <input
                         type="text"
+                        required
                         className="cfo-input"
                         placeholder="e.g. HDFC Salary Account"
                         value={acc.name}
@@ -363,11 +519,20 @@ export function GettingStartedFlow({
                     </label>
 
                     <label className="cfo-field">
-                      <span className="cfo-label">Account Type</span>
+                      <span className="cfo-label">
+                        Account Type <abbr title="Mandatory" style={{ color: "var(--cfo-accent, #c45c26)", textDecoration: "none" }}>*</abbr>
+                      </span>
                       <select
+                        required
                         className="cfo-input"
                         value={acc.account_type}
-                        onChange={(e) => updateAccountDraft(acc.id, "account_type", e.target.value as any)}
+                        onChange={(e) =>
+                          updateAccountDraft(
+                            acc.id,
+                            "account_type",
+                            e.target.value as AccountDraft["account_type"],
+                          )
+                        }
                       >
                         <option value="bank">Bank Checking / Salary</option>
                         <option value="savings">High-Yield Savings</option>
@@ -380,6 +545,7 @@ export function GettingStartedFlow({
                       <span className="cfo-label">Starting Balance (₹)</span>
                       <input
                         type="number"
+                        inputMode="decimal"
                         className="cfo-input"
                         placeholder="50000"
                         value={acc.balance}
@@ -412,16 +578,17 @@ export function GettingStartedFlow({
 
             <div className="dash-onboarding-footer">
               <span className="dash-onboarding-meta">
-                Total Initial Liquidity: <strong>{formatINR(accounts.reduce((acc, a) => acc + (parseFloat(a.balance) || 0), 0))}</strong>
+                Starting cash: <strong>{formatINR(accounts.reduce((acc, a) => acc + (parseFloat(a.balance) || 0), 0))}</strong>
               </span>
-              <button
-                type="button"
-                className="cfo-btn cfo-btn--fill"
-                disabled={busy}
-                onClick={handleProceedStep1}
-              >
-                {busy ? "Saving Accounts..." : "Proceed to Inflows"} <ArrowRight size={14} />
-              </button>
+              <StepActions
+                busy={busy}
+                disabled={!isStep1Valid}
+                busyLabel="Saving accounts…"
+                nextLabel="Proceed to inflows"
+                nextShort="Continue"
+                onNext={handleProceedStep1}
+                icon={<ArrowRight size={14} />}
+              />
             </div>
           </div>
         </section>
@@ -437,15 +604,18 @@ export function GettingStartedFlow({
           </div>
           <div className="dash-onboarding-body">
             <p className="dash-onboarding-hint">
-              Define your monthly recurring income stream. You can choose to automatically record this month's initial deposit into your primary account.
+              Define your monthly recurring income stream. You can record an opening deposit for the current month in your primary account.
             </p>
 
             <div className="dash-onboarding-card">
               <div className="dash-onboarding-grid">
                 <label className="cfo-field">
-                  <span className="cfo-label">Primary Income Source</span>
+                  <span className="cfo-label">
+                    Primary Income Source <abbr title="Mandatory" style={{ color: "var(--cfo-accent, #c45c26)", textDecoration: "none" }}>*</abbr>
+                  </span>
                   <input
                     type="text"
+                    required
                     className="cfo-input"
                     placeholder="e.g. Monthly Salary / Consulting"
                     value={incomeSource}
@@ -454,9 +624,13 @@ export function GettingStartedFlow({
                 </label>
 
                 <label className="cfo-field">
-                  <span className="cfo-label">Expected Monthly Inflow (₹)</span>
+                  <span className="cfo-label">
+                    Expected Monthly Inflow (₹) <abbr title="Mandatory" style={{ color: "var(--cfo-accent, #c45c26)", textDecoration: "none" }}>*</abbr>
+                  </span>
                   <input
                     type="number"
+                    required
+                    inputMode="decimal"
                     className="cfo-input"
                     placeholder="100000"
                     value={monthlyIncome}
@@ -465,38 +639,32 @@ export function GettingStartedFlow({
                 </label>
               </div>
 
-              <div style={{ marginTop: "1.25rem", padding: "0.85rem", background: "color-mix(in srgb, var(--cfo-bg-elevated) 90%, var(--cfo-line))", border: "1px solid var(--cfo-line)" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "0.65rem", cursor: "pointer", fontFamily: "var(--cfo-mono)", fontSize: "0.82rem" }}>
+              <div className="dash-onboarding-check">
+                <label>
                   <input
                     type="checkbox"
                     checked={recordInitialIncome}
                     onChange={(e) => setRecordInitialIncome(e.target.checked)}
-                    style={{ accentColor: "var(--cfo-accent)", width: "16px", height: "16px" }}
                   />
-                  <span>Record opening income transaction (<strong>{formatINR(parseFloat(monthlyIncome) || 0)}</strong>) to ledger immediately</span>
+                  <span>
+                    Record this month&apos;s income (<strong>{formatINR(parseFloat(monthlyIncome) || 0)}</strong>) on the ledger now
+                  </span>
                 </label>
-                <p style={{ margin: "0.4rem 0 0 1.65rem", fontSize: "0.75rem", color: "var(--cfo-ink-dim)" }}>
-                  Ensures your ledger is immediately funded and valid for posting operating expenses.
-                </p>
+                <p>Gives the ledger an opening balance so expenses can post right away.</p>
               </div>
             </div>
 
             <div className="dash-onboarding-footer">
-              <button
-                type="button"
-                className="cfo-btn cfo-btn--ghost"
-                onClick={() => setStep(1)}
-              >
-                <ArrowLeft size={14} /> Back
-              </button>
-              <button
-                type="button"
-                className="cfo-btn cfo-btn--fill"
-                disabled={busy}
-                onClick={handleProceedStep2}
-              >
-                {busy ? "Saving Inflows..." : "Proceed to Financial Policy"} <ArrowRight size={14} />
-              </button>
+              <StepActions
+                onBack={() => setStep(1)}
+                busy={busy}
+                disabled={!isStep2Valid}
+                busyLabel="Saving income…"
+                nextLabel="Proceed to policy"
+                nextShort="Continue"
+                onNext={handleProceedStep2}
+                icon={<ArrowRight size={14} />}
+              />
             </div>
           </div>
         </section>
@@ -517,11 +685,9 @@ export function GettingStartedFlow({
 
             <div className="dash-onboarding-card">
               <div className="dash-onboarding-policy-section">
-                <div>
-                  <label className="cfo-label">Monthly Savings Target (%)</label>
-                  <p style={{ fontSize: "0.76rem", color: "var(--cfo-ink-dim)", margin: "0.2rem 0 0.6rem" }}>
-                    Percentage of gross income earmarked for wealth accumulation & debt retirement.
-                  </p>
+                <div className="dash-onboarding-policy-block">
+                  <label className="cfo-label">Monthly savings target</label>
+                  <p>Share of income set aside for saving and paying down debt.</p>
                   <div className="dash-onboarding-pills">
                     {[10, 20, 30, 40, 50].map((pct) => (
                       <button
@@ -536,11 +702,9 @@ export function GettingStartedFlow({
                   </div>
                 </div>
 
-                <div style={{ marginTop: "1.5rem" }}>
-                  <label className="cfo-label">Emergency Fund Safety Cushion</label>
-                  <p style={{ fontSize: "0.76rem", color: "var(--cfo-ink-dim)", margin: "0.2rem 0 0.6rem" }}>
-                    Target months of non-discretionary living expenses held in liquid accounts.
-                  </p>
+                <div className="dash-onboarding-policy-block">
+                  <label className="cfo-label">Emergency cushion</label>
+                  <p>Months of essential expenses to keep in cash.</p>
                   <div className="dash-onboarding-pills">
                     {[3, 6, 9, 12].map((m) => (
                       <button
@@ -549,27 +713,28 @@ export function GettingStartedFlow({
                         className={`dash-onboarding-pill ${emergencyMonths === m ? "active" : ""}`}
                         onClick={() => setEmergencyMonths(m)}
                       >
-                        {m} Months
+                        {m} months
                       </button>
                     ))}
                   </div>
                 </div>
 
-                <div style={{ marginTop: "1.5rem" }}>
-                  <label className="cfo-label">Investment Risk Appetite</label>
-                  <div className="dash-onboarding-pills">
+                <div className="dash-onboarding-policy-block">
+                  <label className="cfo-label">Risk appetite</label>
+                  <div className="dash-onboarding-choices">
                     {[
-                      { id: "conservative", label: "Conservative (Capital Preservation)" },
-                      { id: "moderate", label: "Moderate (Balanced Growth)" },
-                      { id: "aggressive", label: "Aggressive (High Alpha)" },
+                      { id: "conservative" as const, label: "Conservative", hint: "Protect capital" },
+                      { id: "moderate" as const, label: "Moderate", hint: "Balanced growth" },
+                      { id: "aggressive" as const, label: "Aggressive", hint: "Higher volatility" },
                     ].map((r) => (
                       <button
                         key={r.id}
                         type="button"
-                        className={`dash-onboarding-pill ${riskTolerance === r.id ? "active" : ""}`}
-                        onClick={() => setRiskTolerance(r.id as any)}
+                        className={`dash-onboarding-pill dash-onboarding-pill--choice ${riskTolerance === r.id ? "active" : ""}`}
+                        onClick={() => setRiskTolerance(r.id)}
                       >
-                        {r.label}
+                        <span>{r.label}</span>
+                        <small>{r.hint}</small>
                       </button>
                     ))}
                   </div>
@@ -578,21 +743,15 @@ export function GettingStartedFlow({
             </div>
 
             <div className="dash-onboarding-footer">
-              <button
-                type="button"
-                className="cfo-btn cfo-btn--ghost"
-                onClick={() => setStep(2)}
-              >
-                <ArrowLeft size={14} /> Back
-              </button>
-              <button
-                type="button"
-                className="cfo-btn cfo-btn--fill"
-                disabled={busy}
-                onClick={handleProceedStep3}
-              >
-                {busy ? "Saving Policy..." : "Proceed to Budget Caps"} <ArrowRight size={14} />
-              </button>
+              <StepActions
+                onBack={() => setStep(2)}
+                busy={busy}
+                busyLabel="Saving policy…"
+                nextLabel="Proceed to budgets"
+                nextShort="Continue"
+                onNext={handleProceedStep3}
+                icon={<ArrowRight size={14} />}
+              />
             </div>
           </div>
         </section>
@@ -603,46 +762,88 @@ export function GettingStartedFlow({
         <section className="cfo-panel dash-onboarding-panel">
           <Corners accent />
           <div className="cfo-panel-head">
-            <strong>04 // Essential Monthly Budget Caps</strong>
+            <strong>04 // Monthly Budget Caps</strong>
             <span>STEP 4 OF 4</span>
           </div>
           <div className="dash-onboarding-body">
             <p className="dash-onboarding-hint">
-              Set monthly spending ceilings on key categories. The CFO engine tracks your real-time pace against these limits.
+              Set monthly spending ceilings on your expense categories. At least 1 budget cap is required.
             </p>
 
-            <div className="dash-onboarding-card">
-              <div className="dash-onboarding-grid">
-                {budgets.map((b) => (
-                  <label key={b.category_id} className="cfo-field">
-                    <span className="cfo-label">{b.category_name} Monthly Cap (₹)</span>
+            <div className="dash-onboarding-budgets-table">
+              {budgets.map((b) => (
+                <div key={b.id} className="dash-onboarding-budget-row">
+                  <label className="cfo-field">
+                    <span className="cfo-label">
+                      Category <abbr title="Mandatory" style={{ color: "var(--cfo-accent, #c45c26)", textDecoration: "none" }}>*</abbr>
+                    </span>
+                    <select
+                      required
+                      className="cfo-input"
+                      value={b.category_id}
+                      onChange={(e) => updateBudgetDraft(b.id, "category_id", e.target.value)}
+                    >
+                      <option value="">Select Category...</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name} {c.is_system ? "" : "(Custom)"}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="cfo-field">
+                    <span className="cfo-label">
+                      Monthly Limit (₹) <abbr title="Mandatory" style={{ color: "var(--cfo-accent, #c45c26)", textDecoration: "none" }}>*</abbr>
+                    </span>
                     <input
                       type="number"
+                      required
+                      inputMode="decimal"
                       className="cfo-input"
+                      placeholder="e.g. 15000"
                       value={b.limit}
-                      onChange={(e) => updateBudgetLimit(b.category_id, e.target.value)}
+                      onChange={(e) => updateBudgetDraft(b.id, "limit", e.target.value)}
                     />
                   </label>
-                ))}
-              </div>
+
+                  {budgets.length > 1 ? (
+                    <button
+                      type="button"
+                      className="dash-onboarding-budget-del"
+                      title="Remove budget cap"
+                      aria-label="Remove budget"
+                      onClick={() => removeBudgetRow(b.id)}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  ) : null}
+                </div>
+              ))}
             </div>
 
+            <button
+              type="button"
+              className="cfo-btn cfo-btn--ghost dash-onboarding-add-btn"
+              onClick={addBudgetRow}
+            >
+              <Plus size={14} /> Add Budget
+            </button>
+
             <div className="dash-onboarding-footer">
-              <button
-                type="button"
-                className="cfo-btn cfo-btn--ghost"
-                onClick={() => setStep(3)}
-              >
-                <ArrowLeft size={14} /> Back
-              </button>
-              <button
-                type="button"
-                className="cfo-btn cfo-btn--fill"
-                disabled={busy}
-                onClick={handleProceedStep4}
-              >
-                {busy ? "Saving Budgets..." : "Review & Finalize"} <ArrowRight size={14} />
-              </button>
+              <span className="dash-onboarding-meta">
+                Total Budgeted: <strong>{formatINR(budgets.reduce((acc, b) => acc + (parseFloat(b.limit) || 0), 0))} / month</strong>
+              </span>
+              <StepActions
+                onBack={() => setStep(3)}
+                busy={busy}
+                disabled={!isStep4Valid}
+                busyLabel="Saving budgets…"
+                nextLabel="Review and finalize"
+                nextShort="Review"
+                onNext={handleProceedStep4}
+                icon={<ArrowRight size={14} />}
+              />
             </div>
           </div>
         </section>
@@ -665,7 +866,7 @@ export function GettingStartedFlow({
 
               <div className="dash-onboarding-summary-col">
                 <span className="cfo-kicker">MONTHLY INFLOW</span>
-                <p><strong>{formatINR(parseFloat(monthlyIncome) || 0)} / mo</strong> ({incomeSource})</p>
+                <p><strong>{formatINR(parseFloat(monthlyIncome) || 0)} / month</strong> ({incomeSource})</p>
               </div>
 
               <div className="dash-onboarding-summary-col">
@@ -675,34 +876,27 @@ export function GettingStartedFlow({
 
               <div className="dash-onboarding-summary-col">
                 <span className="cfo-kicker">BUDGET CAPS</span>
-                <p><strong>{budgets.length} Categories</strong> totaling {formatINR(budgets.reduce((acc, b) => acc + (parseFloat(b.limit) || 0), 0))} / mo</p>
+                <p><strong>{budgets.length} Categories</strong> totaling {formatINR(budgets.reduce((acc, b) => acc + (parseFloat(b.limit) || 0), 0))} / month</p>
               </div>
             </div>
 
             <div className="dash-onboarding-notice">
-              <CheckCircle2 size={16} style={{ color: "var(--cfo-accent)", flexShrink: 0 }} />
+              <CheckCircle2 size={16} />
               <p>
-                All balances, accounts, policies, and categories are saved directly to your PostgreSQL ledger and can be adjusted or exported anytime in <strong>Settings</strong>.
+                Balances, accounts, policy, and category caps are saved on your ledger. You can adjust or export them anytime in <strong>Settings</strong>.
               </p>
             </div>
 
             <div className="dash-onboarding-footer">
-              <button
-                type="button"
-                className="cfo-btn cfo-btn--ghost"
-                disabled={busy}
-                onClick={() => setStep(4)}
-              >
-                <ArrowLeft size={14} /> Back
-              </button>
-              <button
-                type="button"
-                className="cfo-btn cfo-btn--fill"
-                disabled={busy}
-                onClick={handleFinish}
-              >
-                {busy ? "Finalizing Workspace..." : "Launch CFO Workspace"} <Sparkles size={14} />
-              </button>
+              <StepActions
+                onBack={() => setStep(4)}
+                busy={busy}
+                busyLabel="Opening workspace…"
+                nextLabel="Launch workspace"
+                nextShort="Launch"
+                onNext={handleFinish}
+                icon={<Sparkles size={14} />}
+              />
             </div>
           </div>
         </section>

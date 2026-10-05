@@ -28,6 +28,8 @@ export interface BudgetDraft {
 }
 
 export interface OnboardingStatusData {
+  is_first_time?: boolean;
+  show_getting_started?: boolean;
   step: 1 | 2 | 3 | 4 | 5;
   completed: boolean;
   accounts: Array<{
@@ -60,8 +62,13 @@ type Envelope<T> = {
   data: T;
 };
 
+export async function fetchGettingStartedStatus(): Promise<OnboardingStatusData> {
+  const response = await api.get<Envelope<OnboardingStatusData>>("/api/getting-started/status");
+  return response.data.data;
+}
+
 export async function fetchOnboardingStatus(): Promise<OnboardingStatusData> {
-  const response = await api.get<Envelope<OnboardingStatusData>>("/api/onboarding/status");
+  const response = await api.get<Envelope<OnboardingStatusData>>("/api/getting-started/status");
   return response.data.data;
 }
 
@@ -109,7 +116,29 @@ export async function submitStep4Budgets(budgets: Array<{ category_id: string; c
   return response.data;
 }
 
+export async function deleteOnboardingAccount(accountId: string) {
+  const response = await api.delete(`/api/onboarding/accounts/${accountId}`);
+  return response.data;
+}
+
+export async function deleteAllOnboardingAccounts() {
+  const response = await api.delete("/api/onboarding/accounts");
+  return response.data;
+}
+
+export async function deleteOnboardingBudget(categoryId: string) {
+  const response = await api.delete(`/api/onboarding/budgets/${categoryId}`);
+  return response.data;
+}
+
+export async function deleteAllOnboardingBudgets() {
+  const response = await api.delete("/api/onboarding/budgets");
+  return response.data;
+}
+
 export async function submitCompleteOnboarding() {
   const response = await api.post("/api/onboarding/complete", {});
   return response.data;
 }
+
+

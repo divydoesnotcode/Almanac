@@ -33,7 +33,7 @@ services:
       - .env
 
     environment:
-      APP_NAME: "AI Personal CFO"
+      APP_NAME: "Almanac"
       ENVIRONMENT: development
       DEBUG: "true"
       DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/personal_cfo

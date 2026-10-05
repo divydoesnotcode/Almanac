@@ -10,10 +10,10 @@
 ```
 
 <p align="center">
-  <code>CFO // CORE-KERNEL</code> &nbsp;&nbsp;·&nbsp;&nbsp; <code>DOUBLE-ENTRY / INR</code> &nbsp;&nbsp;·&nbsp;&nbsp; <code>SYSTEM RELEASE 0.2.0</code>
+  <code>CFO // CORE-KERNEL</code> &nbsp;&nbsp;·&nbsp;&nbsp; <code>DOUBLE-ENTRY / INR</code> &nbsp;&nbsp;·&nbsp;&nbsp; <code>SYSTEM RELEASE 0.3.0</code>
 </p>
 
-# AI Personal CFO
+# Almanac
 ### Autonomous Financial Intelligence, Ledger Governance & Cashflow Telemetry
 
 <p align="center">
@@ -27,7 +27,7 @@
 
 <p align="center">
   <b>High-precision financial intelligence engine for individuals and founders.</b><br>
-  Real-time net worth synthesis · P&L & Balance Sheet generation · Burn & Leak telemetry · Multi-account double-entry ledger.
+  Guided onboarding setup · Multi-account double-entry ledger · Real-time net worth synthesis · P&L & Balance Sheet generation · Burn & Leak telemetry.
 </p>
 
 ---
@@ -44,14 +44,17 @@
 ├───────────────────────────────┬────────────┬─────────────┬─────────────────────────────────────────────┤
 │ SUBSYSTEM                     │ STABILITY  │ HEALTH      │ ACTIVE CAPABILITIES                         │
 ├───────────────────────────────┼────────────┼─────────────┼─────────────────────────────────────────────┤
-│ ◈ Ledger & Account Kernel     │ 100% LIVE  │ 🟠 OPERATIONAL│ Full CRUD, Balance tracking, INR decimal    │
-│ ◈ Dashboard Telemetry         │ 100% LIVE  │ 🟠 OPERATIONAL│ Net worth, Cashflow 7D-1Y, Burn, Health    │
-│ ◈ Budgets & Monthly Limits    │ 100% LIVE  │ 🟠 OPERATIONAL│ Category caps, Real-time pace, Edit/Delete  │
-│ ◈ Goals & Milestone Engine    │ 100% LIVE  │ 🟠 OPERATIONAL│ Priority goals, Target dates, Edit/Delete   │
-│ ◈ Investment & Holdings Hub   │ 100% LIVE  │ 🟠 OPERATIONAL│ Asset allocation slices, Edit/Delete        │
-│ ◈ Debt & Liability Engine     │ 100% LIVE  │ 🟠 OPERATIONAL│ Loan tracking, Outstanding balance, Actions │
-│ ◈ Formal Reports Suite        │ 100% LIVE  │ 🟠 OPERATIONAL│ P&L, MoM Compare, Tax Audit, Leaks, PDF     │
-│ ◈ Settings & Data Portability │ 100% LIVE  │ 🟠 OPERATIONAL│ Category management, CSV & JSON Export      │
+│ ◈ Authentication & Session    │ 100% LIVE  │ 🟢 RESILIENT │ Dual storage, cross-domain refresh grace    │
+│ ◈ Guided Onboarding Workflow  │ 100% LIVE  │ 🟢 RESILIENT │ 5-Step setup: accounts, goals, preferences  │
+│ ◈ Ledger & Account Kernel     │ 100% LIVE  │ 🟢 RESILIENT │ Full CRUD, Balance tracking, INR decimal    │
+│ ◈ Account Management Hub      │ 100% LIVE  │ 🟢 RESILIENT │ Settings tab & dedicated account panel      │
+│ ◈ Dashboard Telemetry         │ 100% LIVE  │ 🟢 RESILIENT │ Net worth, Cashflow 7D-1Y, Burn, Health     │
+│ ◈ Budgets & Monthly Limits    │ 100% LIVE  │ 🟢 RESILIENT │ Category caps, Real-time pace, Edit/Delete  │
+│ ◈ Goals & Milestone Engine    │ 100% LIVE  │ 🟢 RESILIENT │ Priority goals, Target dates, Edit/Delete   │
+│ ◈ Investment & Holdings Hub   │ 100% LIVE  │ 🟢 RESILIENT │ Asset allocation slices, Edit/Delete        │
+│ ◈ Debt & Liability Engine     │ 100% LIVE  │ 🟢 RESILIENT │ Loan tracking, Outstanding balance, Actions │
+│ ◈ Formal Reports Suite        │ 100% LIVE  │ 🟢 RESILIENT │ P&L, MoM Compare, Tax Audit, Leaks, PDF     │
+│ ◈ Settings & Data Portability │ 100% LIVE  │ 🟢 RESILIENT │ Accounts, Category CRUD, CSV/JSON Export    │
 │ ◈ Conversational AI CFO       │ 65% QUEUED │ ⚪ IN PROGRESS│ Agent dispatcher & contextual ledger RAG    │
 │ ◈ ML Forecasts & Scenarios    │ 40% QUEUED │ ⚪ SCHEDULED  │ Cashflow burn predictive modeling           │
 └───────────────────────────────┴────────────┴─────────────┴─────────────────────────────────────────────┘
@@ -59,19 +62,21 @@
 
 <br>
 
-### 🟠 Module Build Status
+### 🟢 Module Build Status
 
 | Subsystem | Endpoint / Surface | Build Status | Description |
 | :--- | :--- | :---: | :--- |
-| **Authentication** | `/api/auth/*` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Argon2 password hashing, rotating refresh tokens, httpOnly cookies, multi-session revocation |
+| **Authentication** | `/api/auth/*` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Argon2 password hashing, rotating refresh tokens with 30s grace window, cross-domain body/cookie fallback, zero-flash refresh |
+| **Guided Onboarding** | `/onboarding`, `/api/onboarding/*` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | 5-Step interactive wizard: Account setup, Income baseline, Monthly budget caps, Milestone goals, and Financial preferences |
 | **Command Center** | `/dashboard` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | 7D/30D/3M/6M/1Y cashflow charts, Financial Health score (0-100), net worth delta, instant action prompts |
+| **Account Management** | `/settings?tab=accounts`, `/accounts` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Manage bank accounts, credit cards, investments, and loans created during or after onboarding |
 | **Transactions Engine** | `/transactions` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Income, Expense, Transfer, Pending movements, category tagging, account balance auto-adjustment |
 | **Budget Control** | `/budgets` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Category monthly limit tracking, budget utilization gauges, right-aligned Edit & Delete actions |
 | **Goal Tracker** | `/goals` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Milestone targets, priority badges, progress bars, interactive Goal Edit and Delete modals |
 | **Investments Hub** | `/investments` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Portfolio asset breakdown, gain/loss indicators, account management with full CRUD |
 | **Debt & Liabilities** | `/debt` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Credit cards, personal/home loans, interest tracking, paydown cards with Edit & Delete |
 | **Financial Reports** | `/reports` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | **4 Core Reports**: Monthly Statement (P&L + Balance Sheet + PDF Print), Historical Comparison, Tax Audit, Lifestyle Leak Detection |
-| **Settings & Categories** | `/settings` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Category CRUD (Create, Edit name/desc, Soft-Delete), Financial Policy limits, Security manager |
+| **Settings & Categories** | `/settings` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Manage Accounts, Category CRUD (Create, Edit, Soft-Delete), Financial Policy limits, Active Session Security manager |
 | **Data Portability** | `/settings?tab=data` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | 1-Click CSV transaction exporter, Complete Ledger JSON full-fidelity backup |
 | **AI Co-Pilot** | `/cfo` | <img src="https://img.shields.io/badge/◌_IN_FLIGHT-5c5850?style=flat-square&labelColor=0b0b0a"> | In-app CFO conversation drawer, RAG tool integration with live PostgreSQL ledger |
 
@@ -84,7 +89,7 @@
 │                               NEXT.JS 16 CLIENT RUNTIME                                │
 │   React 19  ·  Tailwind CSS 4  ·  Recharts  ·  Lucide Icons  ·  Brutalist Theme System │
 └───────────────────────────────────────────┬────────────────────────────────────────────┘
-                                            │ HTTP / REST (Axios + Cookie Auth)
+                                            │ HTTP / REST (Axios + Dual Storage & Cookie Auth)
                                             ▼
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                               FASTAPI ASYNC BACKEND ENGINE                             │
@@ -93,14 +98,14 @@
 │  Ledger Engine       │  Dashboard Service   │  Reports Pipeline │  Auth & Sessions     │
 │  - Account Balances  │  - Net Worth Delta   │  - Monthly P&L    │  - JWT Verification  │
 │  - Double-entry Post │  - Cashflow Trends   │  - MoM Comparison │  - Device Revocation │
-│  - Category CRUD     │  - Health Score (100)│  - Tax Deductions │  - Cookie Rotation   │
-│  - Goals & Budgets   │  - AI Next Moves     │  - Leak Detection │  - Password Hashing  │
+│  - Category CRUD     │  - Health Score (100)│  - Tax Deductions │  - Grace Rotation    │
+│  - Goals & Budgets   │  - AI Next Moves     │  - Leak Detection │  - Cross-Origin Auth │
 └──────────────────────┴──────────────────────┴───────────────────┴──────────────────────┘
                                             │ Async SQLAlchemy 2.0 / psycopg3
                                             ▼
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                               POSTGRESQL 16 LEDGER STORE                               │
-│       Users  ·  Accounts  ·  Transactions  ·  Categories  ·  Goals  ·  Budgets         │
+│  Users  ·  UserPreferences  ·  Accounts  ·  Transactions  ·  Categories  ·  Goals      │
 └────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -124,6 +129,11 @@ erDiagram
 
 ## 02 / Key Capabilities & Feature Surface
 
+### 🚀 Guided Onboarding & Account Orchestration
+* **5-Step Interactive Setup**: Fast-tracks new users through Initial Accounts setup (Bank, Cards, Cash, Investments), Income baseline, Monthly budget caps, Milestone goals, and Financial preferences.
+* **Onboarding Enforcement Guard**: Prevents premature dashboard routing until initial configuration is complete.
+* **Accounts Management Hub**: Manage, edit, and create additional accounts post-onboarding directly inside `/settings?tab=accounts` or via the workspace navigation.
+
 ### 📊 Real-Time Command Center
 * **Net Worth & Liquid Cash Position**: Dynamic computation aggregating bank accounts, cash reserves, investment portfolios, minus active loans and credit obligations.
 * **Cashflow Velocity**: Filterable 7-day, 30-day, 3-month, 6-month, and 1-year inflow vs. outflow trajectory charts.
@@ -135,27 +145,40 @@ erDiagram
 * **Tax & Deductions Audit**: Automated deduction tracker organizing transactions under Section 80C, Section 80D Health Insurance, HRA, NPS, and Home Loan interest.
 * **Subscriptions & Lifestyle Leak Audit**: Recurring outflow detection flagging active subscriptions, gym memberships, streaming services, and computing their annualized financial drag.
 
-### 🛡️ Unified Settings, Category Management & Data Portability
-* **Full Category Management**: Add custom categories, rename existing categories, update descriptions, and soft-delete unused categories safely without breaking historical ledger links.
+### 🛡️ Resilient Authentication & Data Portability
+* **Production-Grade Auth Engine**:
+  * Dual storage model combining `localStorage` hydration with HttpOnly cookie support.
+  * 30-second token rotation grace period preventing race condition logouts on page reload.
+  * Cross-domain body token payload fallback for decoupled Vercel + Railway/Render deployments.
+* **Category & Ledger Governance**: Add custom categories, rename existing categories, update descriptions, and soft-delete unused categories safely without breaking historical ledger links.
 * **Data Portability**:
   * **CSV Download**: 1-click export of complete transaction history formatted for Excel / Google Sheets.
   * **JSON Full Backup**: Portable, lossless full-ledger snapshot containing accounts, categories, goals, budgets, and transactions.
-* **Security Control**: Real-time active session inspector with 1-click single device revocation and global sign-out.
 
 ---
 
 ## 03 / API Interface Matrix
 
-All API endpoints strictly communicate over JSON. Authenticated requests use `Authorization: Bearer <access_token>` with automatic fallback to the `cfo_access_token` httpOnly cookie.
+All API endpoints strictly communicate over JSON. Authenticated requests support `Authorization: Bearer <access_token>` with automatic fallback to HttpOnly cookies and JSON refresh payloads.
 
 ### 🔑 Authentication
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `POST` | `/api/auth/signup` | Register new account with Argon2 password hashing |
-| `POST` | `/api/auth/signin` | Sign in, receive access JWT & set rotating refresh cookie |
-| `POST` | `/api/auth/refresh` | Rotate refresh token and issue fresh access token |
+| `POST` | `/api/auth/signin` | Sign in, receive access JWT & refresh credentials |
+| `POST` | `/api/auth/refresh` | Rotate refresh token (supports cookie and JSON payload) |
 | `GET` | `/api/auth/me` | Fetch active user credentials |
 | `POST` | `/api/auth/signout` | Revoke session and clear authentication cookies |
+
+### 🚀 Onboarding Wizard
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/onboarding/status` | Retrieve current user's onboarding completion status and step |
+| `POST` | `/api/onboarding/step-1` | Save initial bank, cash, card, and investment accounts |
+| `POST` | `/api/onboarding/step-2` | Save income baseline and initial expense categories |
+| `POST` | `/api/onboarding/step-3` | Save initial monthly category budget limits |
+| `POST` | `/api/onboarding/step-4` | Save milestone financial goals |
+| `POST` | `/api/onboarding/step-5` | Save currency, risk tolerance, and finalize onboarding |
 
 ### 💳 Ledger & Accounts
 | Method | Endpoint | Description |
@@ -247,7 +270,7 @@ npm run dev
 
 1. **Exact-Precision Accounting**: All monetary computations utilize Python `Decimal` and PostgreSQL `Numeric(19, 4)` types to guarantee zero floating-point rounding errors.
 2. **Double-Entry Directionality**: Amounts are strictly positive; directionality is determined by explicit transaction classifications (`income`, `expense`, `transfer`, `loan_payment`, etc.).
-3. **Defense-in-Depth Authentication**: Access JWTs are ephemeral; refresh tokens are persisted in cryptographically secure, httpOnly cookies scoped exclusively to `/api/auth`.
+3. **Defense-in-Depth Authentication**: Access JWTs are short-lived; refresh tokens rotate with a 30-second concurrency grace window; session recovery is supported across cross-origin deployments via dual token hydration.
 4. **Data Isolation**: Multi-tenant database architecture where all queries are strictly isolated by authenticated `user_id`.
 
 ---

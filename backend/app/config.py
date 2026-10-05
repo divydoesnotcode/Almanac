@@ -16,7 +16,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Strongly typed application configuration."""
 
-    APP_NAME: str = "AI Personal CFO"
+    APP_NAME: str = "Almanac"
     APP_VERSION: str = "0.1.0"
 
     ENVIRONMENT: str = "development"

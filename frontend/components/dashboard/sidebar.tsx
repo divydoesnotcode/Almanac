@@ -65,15 +65,15 @@ export function Sidebar({
   return (
     <>
       {showBrand ? (
-      <Link href="/dashboard" className="dash-sidebar-brand" onClick={onNavigate}>
-        <span className="dash-mark" aria-hidden="true">
-          CF
-        </span>
-        <span className="dash-brand-copy">
-          <strong>CFO // LEDGER</strong>
-          <span>AI Personal CFO</span>
-        </span>
-      </Link>
+        <Link href="/dashboard" className="dash-sidebar-brand" onClick={onNavigate}>
+          <span className="dash-mark" aria-hidden="true">
+            CF
+          </span>
+          <span className="dash-brand-copy">
+            <strong>CFO // LEDGER</strong>
+            <span>Almanac</span>
+          </span>
+        </Link>
       ) : null}
 
       <nav className="dash-nav" aria-label="Workspace">
@@ -83,15 +83,15 @@ export function Sidebar({
       </nav>
 
       {showCollapse ? (
-      <button
-        type="button"
-        className="dash-collapse"
-        onClick={onToggle}
-        aria-pressed={collapsed}
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-      >
-        <PanelLeft size={15} aria-hidden="true" />
-      </button>
+        <button
+          type="button"
+          className="dash-collapse"
+          onClick={onToggle}
+          aria-pressed={collapsed}
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <PanelLeft size={15} aria-hidden="true" />
+        </button>
       ) : null}
     </>
   );

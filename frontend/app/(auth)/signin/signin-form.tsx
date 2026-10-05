@@ -6,10 +6,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useId, useMemo, useState, type FormEvent } from "react";
 import { z } from "zod";
 
+import { useEffect } from "react";
 import { fieldErrorsFromValidation, getApiErrorMessage } from "@/lib/api";
 import { signinRequest } from "@/lib/auth-api";
-import { POST_LOGIN_GUARD_PENDING } from "@/lib/auth-navigation";
 import { setAuthSession } from "@/lib/auth-storage";
+import { useAuth } from "@/lib/use-auth";
 
 const signinSchema = z.object({
   email: z.email("Enter a valid email"),
@@ -24,6 +25,7 @@ function SigninFormInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const registered = searchParams.get("registered") === "1";
+  const { user, status: authStatus } = useAuth();
 
   const [values, setValues] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState<FieldErrors>({});
@@ -35,6 +37,12 @@ function SigninFormInner() {
     registered ? "ok" : "idle",
   );
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (authStatus !== "loading" && user) {
+      router.replace("/dashboard");
+    }
+  }, [authStatus, user, router]);
 
   const initialHint = useMemo(
     () => (registered ? "Account created. Sign in to continue." : ""),
@@ -84,9 +92,6 @@ function SigninFormInner() {
         refreshToken: response.data.refresh_token,
       });
 
-      // The workspace consumes this once to install a Back-navigation guard.
-      // It contains no session data and is scoped to this browser tab.
-      window.sessionStorage.setItem(POST_LOGIN_GUARD_PENDING, "1");
       setStatus("Signed in. Redirecting…");
       setStatusTone("ok");
       router.push("/dashboard");

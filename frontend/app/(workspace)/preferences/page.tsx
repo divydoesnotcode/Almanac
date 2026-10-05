@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 import { SettingsHub } from "@/components/dashboard/settings-hub";
 
-export const metadata: Metadata = { title: "Financial Policy — AI Personal CFO" };
+export const metadata: Metadata = { title: "Financial Policy — Almanac" };
 
 export default function PreferencesPage() {
   return (

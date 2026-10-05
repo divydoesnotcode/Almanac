@@ -1,5 +1,5 @@
 """
-AI Personal CFO — Database Connection Verifier
+Almanac — Database Connection Verifier
 
 Run this standalone script to test your PostgreSQL / Supabase connection:
     python scripts/test_db_connection.py
