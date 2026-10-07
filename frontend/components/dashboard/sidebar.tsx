@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PanelLeft } from "lucide-react";
+import { LogOut, PanelLeft } from "lucide-react";
 
 import { PRIMARY_NAV, SECONDARY_NAV } from "@/lib/dashboard/nav";
 
@@ -12,6 +12,7 @@ type SidebarProps = {
   collapsed: boolean;
   onToggle: () => void;
   onNavigate?: () => void;
+  onLogout?: () => void;
   showBrand?: boolean;
   showCollapse?: boolean;
 };
@@ -59,6 +60,7 @@ export function Sidebar({
   collapsed,
   onToggle,
   onNavigate,
+  onLogout,
   showBrand = true,
   showCollapse = true,
 }: SidebarProps) {
@@ -80,6 +82,26 @@ export function Sidebar({
         <NavList items={PRIMARY_NAV} collapsed={collapsed} onNavigate={onNavigate} />
         <hr className="dash-nav-rule" />
         <NavList items={SECONDARY_NAV} collapsed={collapsed} onNavigate={onNavigate} />
+        {onLogout ? (
+          <>
+            <hr className="dash-nav-rule" />
+            <button
+              type="button"
+              className="dash-nav-link dash-nav-logout"
+              onClick={() => {
+                onNavigate?.();
+                onLogout();
+              }}
+              title={collapsed ? "Logout" : undefined}
+            >
+              <span className="dash-nav-icon">
+                <LogOut size={16} aria-hidden="true" />
+              </span>
+              <span className="dash-nav-label">Logout</span>
+              {collapsed ? <span className="dash-tip">Logout</span> : null}
+            </button>
+          </>
+        ) : null}
       </nav>
 
       {showCollapse ? (

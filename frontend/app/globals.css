@@ -567,6 +567,36 @@ body {
     box-shadow var(--cfo-duration) var(--cfo-ease);
 }
 
+select.cfo-input,
+.cfo-field select,
+select {
+  background-color: var(--cfo-bg-elevated);
+  color: var(--cfo-ink);
+  color-scheme: dark;
+}
+
+:root[data-theme="beige"] select.cfo-input,
+:root[data-theme="beige"] .cfo-field select,
+:root[data-theme="beige"] select {
+  background-color: var(--cfo-bg-elevated);
+  color: var(--cfo-ink);
+  color-scheme: light;
+}
+
+select.cfo-input option,
+.cfo-field select option,
+select option {
+  background-color: #141413;
+  color: #efeae1;
+}
+
+:root[data-theme="beige"] select.cfo-input option,
+:root[data-theme="beige"] .cfo-field select option,
+:root[data-theme="beige"] select option {
+  background-color: #f7f4ee;
+  color: #1c1915;
+}
+
 .cfo-input--padded {
   padding-right: 2.75rem;
 }

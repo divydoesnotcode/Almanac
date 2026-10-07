@@ -152,7 +152,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             animate={{ width: collapsed ? 64 : 232 }}
             transition={{ duration, ease: [0.22, 1, 0.36, 1] }}
           >
-            <Sidebar collapsed={collapsed} onToggle={toggleCollapsed} />
+            <Sidebar
+              collapsed={collapsed}
+              onToggle={toggleCollapsed}
+              onLogout={requestLogout}
+            />
           </motion.aside>
         )}
 
@@ -213,16 +217,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                   collapsed={false}
                   onToggle={() => setDrawer(false)}
                   onNavigate={() => setDrawer(false)}
+                  onLogout={requestLogout}
                   showBrand={false}
                   showCollapse={false}
                 />
-                <button
-                  type="button"
-                  className="dash-collapse"
-                  onClick={() => requestLogout()}
-                >
-                  Logout
-                </button>
               </motion.aside>
             </>
           ) : null}
