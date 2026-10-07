@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -76,6 +77,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [logoutBusy, setLogoutBusy] = useState(false);
   const [logoutError, setLogoutError] = useState("");
   const cancelLogoutRef = useRef<HTMLButtonElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    contentRef.current?.scrollTo(0, 0);
+  }, [pathname]);
 
   useEffect(() => {
     applyLocalDensity(readLocalDensity());
@@ -169,7 +175,23 @@ export function AppShell({ children }: { children: ReactNode }) {
             onLogout={requestLogout}
             minimal={isGettingStarted}
           />
-          <div className="dash-content">{children}</div>
+          <div className="dash-content" ref={contentRef}>
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.div
+                key={pathname}
+                className="dash-route"
+                initial={reduced ? false : { opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={reduced ? { opacity: 1 } : { opacity: 0, y: -8 }}
+                transition={{
+                  duration: reduced ? 0 : 0.26,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
 
         <AnimatePresence>

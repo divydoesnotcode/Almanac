@@ -1,6 +1,7 @@
 "use client";
 
-import type { ElementType } from "react";
+import { useCallback, useState, type ElementType, type ReactNode } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 
 export interface TabItem<T extends string = string> {
   id: T;
@@ -29,7 +30,9 @@ export function ResponsiveTabs<T extends string>({
             key={tab.id}
             type="button"
             className={`dash-settings-tab ${isActive ? "active" : ""}`}
-            onClick={() => onChange(tab.id)}
+            onClick={() => {
+              if (!isActive) onChange(tab.id);
+            }}
             aria-current={isActive ? "page" : undefined}
           >
             {Icon ? <Icon size={14} /> : null}
@@ -38,5 +41,52 @@ export function ResponsiveTabs<T extends string>({
         );
       })}
     </nav>
+  );
+}
+
+export function usePersistedTab<T extends string>(initial: T) {
+  const [active, setActive] = useState(initial);
+  const [seen, setSeen] = useState<readonly T[]>([initial]);
+
+  const select = useCallback((next: T) => {
+    setActive(next);
+    setSeen((current) => (current.includes(next) ? current : [...current, next]));
+  }, []);
+
+  return { active, seen, select };
+}
+
+export function PersistedTab({
+  seen,
+  shown,
+  children,
+}: {
+  seen: boolean;
+  shown: boolean;
+  children: ReactNode;
+}) {
+  const reduced = useReducedMotion();
+  if (!seen) return null;
+  return (
+    <motion.div
+      className="dash-tab-panel"
+      initial={reduced ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: shown ? 1 : 0, y: shown ? 0 : 8 }}
+      transition={{
+        duration: reduced ? 0 : 0.22,
+        ease: [0.22, 1, 0.36, 1],
+      }}
+      style={{
+        position: shown ? "relative" : "absolute",
+        inset: shown ? undefined : 0,
+        width: "100%",
+        pointerEvents: shown ? "auto" : "none",
+        zIndex: shown ? 1 : 0,
+      }}
+      aria-hidden={!shown}
+      inert={!shown}
+    >
+      {children}
+    </motion.div>
   );
 }

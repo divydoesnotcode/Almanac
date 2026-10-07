@@ -22,7 +22,7 @@ import { ComparisonReport } from "./comparison-report";
 import { LifestyleReport } from "./lifestyle-report";
 import { StatementReport } from "./statement-report";
 import { TaxReport } from "./tax-report";
-import { ResponsiveTabs } from "../responsive-tabs";
+import { PersistedTab, ResponsiveTabs, usePersistedTab } from "../responsive-tabs";
 import { ErrorBlock, Skeleton } from "../ui";
 
 export type ReportTab = "statement" | "comparison" | "tax" | "lifestyle";
@@ -41,7 +41,7 @@ const REPORT_TABS: ReportTabItem[] = [
 ];
 
 export function ReportsView() {
-  const [activeTab, setActiveTab] = useState<ReportTab>("statement");
+  const { active, seen, select } = usePersistedTab<ReportTab>("statement");
   const [transactions, setTransactions] = useState<LedgerTransaction[]>([]);
   const [accounts, setAccounts] = useState<LedgerAccount[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,8 +65,24 @@ export function ReportsView() {
   }, []);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    let cancelled = false;
+    Promise.all([listTransactions(1000), listAccounts()])
+      .then(([txs, accs]) => {
+        if (cancelled) return;
+        setTransactions(txs || []);
+        setAccounts(accs || []);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(getApiErrorMessage(err, "Unable to load financial data for reports"));
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="dash-content-inner">
@@ -83,8 +99,8 @@ export function ReportsView() {
 
         <ResponsiveTabs
           tabs={REPORT_TABS}
-          activeTab={activeTab}
-          onChange={setActiveTab}
+          activeTab={active}
+          onChange={select}
           ariaLabel="Reports navigation"
         />
 
@@ -93,19 +109,19 @@ export function ReportsView() {
         ) : error ? (
           <ErrorBlock message={error} onRetry={loadData} />
         ) : (
-          <div className="dash-report-content">
-            {activeTab === "statement" && (
+          <div className="dash-report-content dash-tab-stack">
+            <PersistedTab seen={seen.includes("statement")} shown={active === "statement"}>
               <StatementReport transactions={transactions} accounts={accounts} />
-            )}
-            {activeTab === "comparison" && (
+            </PersistedTab>
+            <PersistedTab seen={seen.includes("comparison")} shown={active === "comparison"}>
               <ComparisonReport transactions={transactions} />
-            )}
-            {activeTab === "tax" && (
+            </PersistedTab>
+            <PersistedTab seen={seen.includes("tax")} shown={active === "tax"}>
               <TaxReport transactions={transactions} />
-            )}
-            {activeTab === "lifestyle" && (
+            </PersistedTab>
+            <PersistedTab seen={seen.includes("lifestyle")} shown={active === "lifestyle"}>
               <LifestyleReport transactions={transactions} />
-            )}
+            </PersistedTab>
           </div>
         )}
       </div>

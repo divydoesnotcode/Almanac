@@ -459,6 +459,11 @@
   position: relative;
 }
 
+.dash-route {
+  width: 100%;
+  min-width: 0;
+}
+
 /* A shell-level progress cue that keeps data refreshes visible without
    covering content or intercepting clicks. */
 .dash-loading {
@@ -1942,7 +1947,14 @@ html[data-density="compact"] .dash-subpage {
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: all 120ms ease-out;
+  transition:
+    color var(--cfo-duration) var(--cfo-ease),
+    background-color var(--cfo-duration) var(--cfo-ease),
+    border-color var(--cfo-duration) var(--cfo-ease);
+}
+
+.dash-tab-stack {
+  position: relative;
 }
 
 .dash-settings-tab:hover {

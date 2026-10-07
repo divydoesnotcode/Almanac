@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Database,
@@ -21,7 +21,7 @@ import {
 import { AccountsPanel } from "./accounts-panel";
 import { CategoriesPanel } from "./category-panel";
 import { DataExportPanel } from "./data-export-panel";
-import { ResponsiveTabs, TabItem } from "./responsive-tabs";
+import { PersistedTab, ResponsiveTabs, usePersistedTab, type TabItem } from "./responsive-tabs";
 
 export type SettingsTabId =
   | "general"
@@ -56,7 +56,7 @@ export function SettingsHub({ defaultTab }: { defaultTab?: SettingsTabId }) {
     return "general";
   }, [queryTab, defaultTab]);
 
-  const [activeTab, setActiveTab] = useState<SettingsTabId>(initialTab);
+  const { active, seen, select } = usePersistedTab(initialTab);
 
   return (
     <div className="dash-content-inner">
@@ -73,19 +73,33 @@ export function SettingsHub({ defaultTab }: { defaultTab?: SettingsTabId }) {
 
         <ResponsiveTabs
           tabs={TABS}
-          activeTab={activeTab}
-          onChange={setActiveTab}
+          activeTab={active}
+          onChange={select}
           ariaLabel="Settings navigation"
         />
 
-        <div className="dash-settings-content">
-          {activeTab === "general" && <SettingsPanel />}
-          {activeTab === "accounts" && <AccountsPanel />}
-          {activeTab === "categories" && <CategoriesPanel />}
-          {activeTab === "preferences" && <PreferencesPanel />}
-          {activeTab === "profile" && <ProfilePanel />}
-          {activeTab === "security" && <SecurityPanel />}
-          {activeTab === "data" && <DataExportPanel />}
+        <div className="dash-settings-content dash-tab-stack">
+          <PersistedTab seen={seen.includes("general")} shown={active === "general"}>
+            <SettingsPanel />
+          </PersistedTab>
+          <PersistedTab seen={seen.includes("accounts")} shown={active === "accounts"}>
+            <AccountsPanel />
+          </PersistedTab>
+          <PersistedTab seen={seen.includes("categories")} shown={active === "categories"}>
+            <CategoriesPanel />
+          </PersistedTab>
+          <PersistedTab seen={seen.includes("preferences")} shown={active === "preferences"}>
+            <PreferencesPanel />
+          </PersistedTab>
+          <PersistedTab seen={seen.includes("profile")} shown={active === "profile"}>
+            <ProfilePanel />
+          </PersistedTab>
+          <PersistedTab seen={seen.includes("security")} shown={active === "security"}>
+            <SecurityPanel />
+          </PersistedTab>
+          <PersistedTab seen={seen.includes("data")} shown={active === "data"}>
+            <DataExportPanel />
+          </PersistedTab>
         </div>
       </div>
     </div>
