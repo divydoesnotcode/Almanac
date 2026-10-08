@@ -432,7 +432,7 @@ export function GettingStartedFlow({
           <span>Initialization matrix</span>
           <span className="dash-onboarding-dot">● Saved as you go</span>
         </div>
-        <h1>Welcome to Almanac</h1>
+        <h1>Welcome to The Almanac</h1>
         <p>
           Set your accounts, income, and a few policy targets. Each step is saved to your ledger, and you can change any of it later.
         </p>

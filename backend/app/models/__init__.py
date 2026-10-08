@@ -1,5 +1,5 @@
 """
-SQLAlchemy model registry for Almanac.
+SQLAlchemy model registry for The Almanac.
 
 This module imports every ORM model so that SQLAlchemy's metadata contains
 the complete application schema.

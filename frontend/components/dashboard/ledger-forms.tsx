@@ -195,7 +195,126 @@ export function TransactionComposer({
       {state.accounts.length === 0 && !state.busy && (
         <div style={{ margin: "1rem 1.25rem 0", padding: "0.75rem", background: "color-mix(in srgb, var(--cfo-accent) 10%, transparent)", border: "1px solid var(--cfo-accent)", fontSize: "0.78rem" }}>
           <p style={{ margin: 0, color: "var(--cfo-ink)", fontWeight: 500 }}>
-            ⚠️ <strong>No accounts found.</strong> You must add a bank account with starting balance or record income before posting an expense.
+            ⚠️ <strong>No accounts found.</strong> You must add a bank account before posting an expense.
+          </p>
+          <Link href="/settings?tab=accounts" style={{ display: "inline-block", marginTop: "0.4rem", color: "var(--cfo-accent)", fontWeight: 600 }}>
+            Manage Accounts in Settings →
+          </Link>
+        </div>
+      )}
+      <form className="cfo-form dash-ledger-form" onSubmit={onSubmit}>
+        <Field label="Amount (₹)">
+          <input
+            className="cfo-input"
+            type="number"
+            min="0.01"
+            step="0.01"
+            value={state.amount}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, amount: event.target.value }))
+            }
+            required
+          />
+        </Field>
+        <Field label="Type">
+          <select
+            className="cfo-input"
+            value={state.type}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, type: event.target.value }))
+            }
+          >
+            <option value="expense">Expense</option>
+            <option value="income">Income</option>
+            <option value="loan_payment">Loan payment</option>
+            <option value="fee">Fee</option>
+            <option value="refund">Refund</option>
+            <option value="interest">Interest</option>
+            <option value="dividend">Dividend</option>
+          </select>
+        </Field>
+        <Field label="Status">
+          <select
+            className="cfo-input"
+            value={state.status}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, status: event.target.value }))
+            }
+          >
+            <option value="posted">Posted</option>
+            <option value="pending">Upcoming</option>
+          </select>
+        </Field>
+        <Field label="Account">
+          <select
+            className="cfo-input"
+            value={state.accountId}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, accountId: event.target.value }))
+            }
+          >
+            {state.accounts.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Category">
+          <select
+            className="cfo-input"
+            value={state.categoryId}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, categoryId: event.target.value }))
+            }
+          >
+            <option value="">Uncategorized</option>
+            {state.categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="When">
+          <input
+            className="cfo-input"
+            type="datetime-local"
+            value={state.when}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, when: event.target.value }))
+            }
+          />
+        </Field>
+        <Field label="Description">
+          <input
+            className="cfo-input"
+            value={state.description}
+            onChange={(event) =>
+              setState((prev) => ({ ...prev, description: event.target.value }))
+            }
+            placeholder="Salary, rent, Swiggy…"
+          />
+        </Field>
+        <FormStatus tone={state.tone} message={state.message} />
+        <button type="submit" className="cfo-btn cfo-btn--ghost" disabled={state.busy}>
+          {state.busy ? "Saving…" : transaction ? "Save changes" : "Record transaction"}
+        </button>
+      </form>
+    </section>
+  );
+
+  return (
+    <section className="cfo-panel dash-panel">
+      <Corners accent />
+      <div className="cfo-panel-head">
+        <strong>{transaction ? "Edit transaction" : "Add a transaction"}</strong>
+        <span>LEDGER</span>
+      </div>
+      {state.accounts.length === 0 && !state.busy && (
+        <div style={{ margin: "1rem 1.25rem 0", padding: "0.75rem", background: "color-mix(in srgb, var(--cfo-accent) 10%, transparent)", border: "1px solid var(--cfo-accent)", fontSize: "0.78rem" }}>
+          <p style={{ margin: 0, color: "var(--cfo-ink)", fontWeight: 500 }}>
+            ⚠️ <strong>No accounts found.</strong> You must add a bank account before posting an expense.
           </p>
           <Link href="/settings?tab=accounts" style={{ display: "inline-block", marginTop: "0.4rem", color: "var(--cfo-accent)", fontWeight: 600 }}>
             Manage Accounts in Settings →

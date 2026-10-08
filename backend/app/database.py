@@ -1,5 +1,5 @@
 """
-Database infrastructure for Almanac.
+Database infrastructure for The Almanac.
 
 Technology:
     - PostgreSQL

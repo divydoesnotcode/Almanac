@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Wallet, Landmark, CreditCard, PiggyBank, TrendingUp, DollarSign } from "lucide-react";
 
 import { getApiErrorMessage } from "@/lib/api";
@@ -265,40 +266,56 @@ export function AccountsPanel() {
         </>
       )}
 
-      {dialogOpen ? (
-        <>
-          <div
-            className="dash-modal-backdrop"
-            onClick={() => {
-              setDialogOpen(false);
-              setEditingAccount(null);
-            }}
-            aria-label="Close dialog backdrop"
-          />
-          <div
-            className="dash-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label={editingAccount ? "Edit account" : "Add an account"}
-          >
-            <AccountComposer
-              key={editingAccount ? editingAccount.id : "new"}
-              account={editingAccount}
-              title="Add New Account"
-              redirectToDashboard={false}
-              onSuccess={() => {
-                setDialogOpen(false);
-                setEditingAccount(null);
-                loadAccounts();
-              }}
-              onCancel={() => {
+      {/* Add / Edit Account Modal with 1-second buttery smooth transition */}
+      <AnimatePresence>
+        {dialogOpen && (
+          <>
+            <motion.div
+              key="account-modal-backdrop"
+              className="dash-modal-backdrop"
+              onClick={() => {
                 setDialogOpen(false);
                 setEditingAccount(null);
               }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              aria-label="Close dialog backdrop"
             />
-          </div>
-        </>
-      ) : null}
+            <motion.div
+              key="account-modal-dialog"
+              className="dash-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label={editingAccount ? "Edit account" : "Add an account"}
+              initial={{ y: "100%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={{
+                duration: 1.0,
+                ease: [0.16, 1, 0.3, 1], // 1-second buttery smooth Apple physics curve
+              }}
+            >
+              <AccountComposer
+                key={editingAccount ? editingAccount.id : "new"}
+                account={editingAccount}
+                title="Add New Account"
+                redirectToDashboard={false}
+                onSuccess={() => {
+                  setDialogOpen(false);
+                  setEditingAccount(null);
+                  loadAccounts();
+                }}
+                onCancel={() => {
+                  setDialogOpen(false);
+                  setEditingAccount(null);
+                }}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {deletingAccount ? (
         <DeleteConfirmDialog

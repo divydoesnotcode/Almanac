@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 
 import { getApiErrorMessage } from "@/lib/api";
@@ -208,41 +209,57 @@ export function InvestmentsView() {
           )}
         </Panel>
 
-        {dialogOpen ? (
-          <>
-            <div
-              className="dash-modal-backdrop"
-              onClick={() => {
-                setDialogOpen(false);
-                setEditingAccount(null);
-              }}
-              aria-label="Close dialog backdrop"
-            />
-            <div
-              className="dash-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-label={editingAccount ? "Edit investment" : "Connect holdings"}
-            >
-              <AccountComposer
-                key={editingAccount ? editingAccount.id : "new"}
-                account={editingAccount}
-                defaultType="investment"
-                title="Connect holdings"
-                onSuccess={() => {
-                  setDialogOpen(false);
-                  setEditingAccount(null);
-                  loadAccounts();
-                }}
-                onCancel={() => {
+        {/* Add / Edit Investment Modal with 1-second buttery smooth transition */}
+        <AnimatePresence>
+          {dialogOpen && (
+            <>
+              <motion.div
+                key="investment-modal-backdrop"
+                className="dash-modal-backdrop"
+                onClick={() => {
                   setDialogOpen(false);
                   setEditingAccount(null);
                 }}
-                redirectToDashboard={false}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                aria-label="Close dialog backdrop"
               />
-            </div>
-          </>
-        ) : null}
+              <motion.div
+                key="investment-modal-dialog"
+                className="dash-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-label={editingAccount ? "Edit investment" : "Connect holdings"}
+                initial={{ y: "100%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: "100%", opacity: 0 }}
+                transition={{
+                  duration: 1.0,
+                  ease: [0.16, 1, 0.3, 1], // 1-second buttery smooth Apple physics curve
+                }}
+              >
+                <AccountComposer
+                  key={editingAccount ? editingAccount.id : "new"}
+                  account={editingAccount}
+                  defaultType="investment"
+                  title="Connect holdings"
+                  onSuccess={() => {
+                    setDialogOpen(false);
+                    setEditingAccount(null);
+                    loadAccounts();
+                  }}
+                  onCancel={() => {
+                    setDialogOpen(false);
+                    setEditingAccount(null);
+                  }}
+                  redirectToDashboard={false}
+                />
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
         {deletingAccount ? (
           <DeleteConfirmDialog

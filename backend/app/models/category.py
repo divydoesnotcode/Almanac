@@ -1,5 +1,5 @@
 """
-Category ORM model for Almanac.
+Category ORM model for The Almanac.
 
 A Category classifies financial transactions.
 

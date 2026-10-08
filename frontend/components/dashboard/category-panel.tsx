@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 
 import { getApiErrorMessage } from "@/lib/api";
@@ -280,38 +281,54 @@ export function CategoriesPanel() {
         </>
       )}
 
-      {dialogOpen ? (
-        <>
-          <div
-            className="dash-modal-backdrop"
-            onClick={() => {
-              setDialogOpen(false);
-              setEditingCategory(null);
-            }}
-            aria-label="Close dialog backdrop"
-          />
-          <div
-            className="dash-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-label={editingCategory ? "Edit category" : "Add a category"}
-          >
-            <CategoryComposer
-              key={editingCategory ? editingCategory.id : "new"}
-              category={editingCategory}
-              onSuccess={() => {
-                setDialogOpen(false);
-                setEditingCategory(null);
-                loadCategories();
-              }}
-              onCancel={() => {
+      {/* Add / Edit Category Modal with 1-second buttery smooth transition */}
+      <AnimatePresence>
+        {dialogOpen && (
+          <>
+            <motion.div
+              key="category-modal-backdrop"
+              className="dash-modal-backdrop"
+              onClick={() => {
                 setDialogOpen(false);
                 setEditingCategory(null);
               }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              aria-label="Close dialog backdrop"
             />
-          </div>
-        </>
-      ) : null}
+            <motion.div
+              key="category-modal-dialog"
+              className="dash-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label={editingCategory ? "Edit category" : "Add a category"}
+              initial={{ y: "100%", opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={{
+                duration: 1.0,
+                ease: [0.16, 1, 0.3, 1], // 1-second buttery smooth Apple physics curve
+              }}
+            >
+              <CategoryComposer
+                key={editingCategory ? editingCategory.id : "new"}
+                category={editingCategory}
+                onSuccess={() => {
+                  setDialogOpen(false);
+                  setEditingCategory(null);
+                  loadCategories();
+                }}
+                onCancel={() => {
+                  setDialogOpen(false);
+                  setEditingCategory(null);
+                }}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {deletingCategory ? (
         <DeleteConfirmDialog

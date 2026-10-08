@@ -70,11 +70,11 @@ export function PersistedTab({
   return (
     <motion.div
       className="dash-tab-panel"
-      initial={reduced ? false : { opacity: 0, y: 8 }}
-      animate={{ opacity: shown ? 1 : 0, y: shown ? 0 : 8 }}
+      initial={reduced ? false : { opacity: 0, y: 10 }}
+      animate={{ opacity: shown ? 1 : 0, y: shown ? 0 : 10 }}
       transition={{
-        duration: reduced ? 0 : 0.22,
-        ease: [0.22, 1, 0.36, 1],
+        duration: reduced ? 0 : 0.5,
+        ease: [0.16, 1, 0.3, 1], // 0.5-second smooth transition
       }}
       style={{
         position: shown ? "relative" : "absolute",

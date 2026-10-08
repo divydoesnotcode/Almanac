@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 import { SettingsHub } from "@/components/dashboard/settings-hub";
 
-export const metadata: Metadata = { title: "Profile — Almanac" };
+export const metadata: Metadata = { title: "Profile — The Almanac" };
 
 export default function ProfilePage() {
   return (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 
 import { getApiErrorMessage } from "@/lib/api";
@@ -197,39 +198,55 @@ export function GoalsView() {
           )}
         </Panel>
 
-        {dialogOpen ? (
-          <>
-            <div
-              className="dash-modal-backdrop"
-              onClick={() => {
-                setDialogOpen(false);
-                setEditingGoal(null);
-              }}
-              aria-label="Close dialog backdrop"
-            />
-            <div
-              className="dash-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-label={editingGoal ? "Edit goal" : "Add a goal"}
-            >
-              <GoalComposer
-                key={editingGoal ? editingGoal.id : "new"}
-                goal={editingGoal}
-                onSuccess={() => {
-                  setDialogOpen(false);
-                  setEditingGoal(null);
-                  loadGoals();
-                }}
-                onCancel={() => {
+        {/* Add / Edit Goal Modal with 1-second buttery smooth transition */}
+        <AnimatePresence>
+          {dialogOpen && (
+            <>
+              <motion.div
+                key="goal-modal-backdrop"
+                className="dash-modal-backdrop"
+                onClick={() => {
                   setDialogOpen(false);
                   setEditingGoal(null);
                 }}
-                redirectToDashboard={false}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                aria-label="Close dialog backdrop"
               />
-            </div>
-          </>
-        ) : null}
+              <motion.div
+                key="goal-modal-dialog"
+                className="dash-modal"
+                role="dialog"
+                aria-modal="true"
+                aria-label={editingGoal ? "Edit goal" : "Add a goal"}
+                initial={{ y: "100%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: "100%", opacity: 0 }}
+                transition={{
+                  duration: 1.0,
+                  ease: [0.16, 1, 0.3, 1], // 1-second buttery smooth Apple physics curve
+                }}
+              >
+                <GoalComposer
+                  key={editingGoal ? editingGoal.id : "new"}
+                  goal={editingGoal}
+                  onSuccess={() => {
+                    setDialogOpen(false);
+                    setEditingGoal(null);
+                    loadGoals();
+                  }}
+                  onCancel={() => {
+                    setDialogOpen(false);
+                    setEditingGoal(null);
+                  }}
+                  redirectToDashboard={false}
+                />
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
         {deletingGoal ? (
           <DeleteConfirmDialog

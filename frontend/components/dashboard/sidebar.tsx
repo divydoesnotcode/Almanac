@@ -73,7 +73,7 @@ export function Sidebar({
           </span>
           <span className="dash-brand-copy">
             <strong>CFO // LEDGER</strong>
-            <span>Almanac</span>
+            <span>The Almanac</span>
           </span>
         </Link>
       ) : null}

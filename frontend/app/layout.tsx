@@ -27,7 +27,7 @@ const cfoMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Almanac — Understand your money",
+  title: "The Almanac — Understand your money",
   description:
     "Your private AI CFO. Know your real cash position, spot leaks, track goals, and get clear next steps from your actual ledger.",
 };

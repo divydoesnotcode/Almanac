@@ -1,5 +1,5 @@
 """
-Almanac — FastAPI Application Entry Point.
+The Almanac — FastAPI Application Entry Point.
 
 This module is intentionally kept thin.
 

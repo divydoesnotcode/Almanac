@@ -1,4 +1,4 @@
-"""User ORM model for Almanac."""
+"""User ORM model for The Almanac."""
 
 from __future__ import annotations
 

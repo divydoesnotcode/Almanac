@@ -444,13 +444,123 @@
   position: absolute;
   right: 0;
   top: calc(100% + 6px);
-  width: min(360px, calc(100vw - 1.5rem));
-  z-index: 50;
+  width: 320px;
+  z-index: 90;
   background: var(--cfo-bg-elevated);
   border: 1px solid var(--cfo-line-strong);
   padding: 0.65rem;
-  animation: cfo-enter var(--cfo-duration) var(--cfo-ease);
-  will-change: opacity, transform;
+  box-shadow: var(--cfo-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dash-search-input-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.dash-search-input-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-search-input-icon {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cfo-ink-dim);
+  pointer-events: none;
+}
+
+.dash-search-field {
+  width: 100%;
+  height: 38px;
+  padding: 0 1.85rem 0 2.1rem;
+  font-size: 0.85rem;
+  background: color-mix(in srgb, var(--cfo-ink) 3%, transparent);
+}
+
+.dash-search-clear-btn {
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  color: var(--cfo-ink-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dash-search-clear-btn:hover {
+  color: var(--cfo-ink);
+}
+
+.dash-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.dash-search-result-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.65rem;
+  font-size: 0.82rem;
+  color: var(--cfo-ink-dim);
+  text-decoration: none;
+  min-height: 38px;
+  border: 1px solid transparent;
+  transition: all var(--cfo-duration) var(--cfo-ease);
+}
+
+.dash-search-result-item:hover,
+.dash-search-result-item:focus-visible {
+  background: color-mix(in srgb, var(--cfo-ink) 4%, transparent);
+  color: var(--cfo-ink);
+}
+
+.dash-search-result-item--active {
+  background: color-mix(in srgb, var(--cfo-accent) 8%, transparent);
+  border-color: color-mix(in srgb, var(--cfo-accent) 25%, transparent);
+  color: var(--cfo-ink);
+  font-weight: 500;
+}
+
+.dash-search-cfo-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.6rem 0.65rem;
+  background: color-mix(in srgb, var(--cfo-accent) 8%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--cfo-accent) 40%, transparent);
+  color: var(--cfo-ink);
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+  min-height: 38px;
+  transition: background var(--cfo-duration) var(--cfo-ease);
+}
+
+.dash-search-cfo-btn:hover {
+  background: color-mix(in srgb, var(--cfo-accent) 15%, transparent);
+}
+
+.dash-mobile-search-backdrop {
+  display: none;
 }
 
 .dash-content {
@@ -516,11 +626,11 @@
   min-width: 0;
 }
 
-.dash-stack > * {
+.dash-stack>* {
   min-width: 0;
 }
 
-.dash-stack > * > .cfo-panel {
+.dash-stack>*>.cfo-panel {
   height: 100%;
 }
 
@@ -1085,7 +1195,7 @@
 }
 
 .dash-neg {
-  color: var(--cfo-ink);
+  color: var(--cfo-danger);
 }
 
 .dash-alloc {
@@ -1153,10 +1263,12 @@
 }
 
 @keyframes dashShimmer {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.35;
   }
@@ -1166,6 +1278,7 @@
   from {
     transform: translateX(-110%);
   }
+
   to {
     transform: translateX(340%);
   }
@@ -1212,13 +1325,13 @@
   margin-bottom: 0.75rem;
 }
 
-.dash-logout-dialog > p {
+.dash-logout-dialog>p {
   margin: 0;
   color: var(--cfo-ink-dim);
   font-size: 0.9rem;
 }
 
-.dash-logout-dialog > .cfo-status--error {
+.dash-logout-dialog>.cfo-status--error {
   margin-top: 0.6rem;
 }
 
@@ -1269,7 +1382,7 @@
   text-transform: uppercase;
 }
 
-.dash-ask > p {
+.dash-ask>p {
   margin: 0 0 0.9rem;
   color: var(--cfo-ink-dim);
   font-size: 0.9rem;
@@ -1554,43 +1667,55 @@ html[data-density="compact"] .dash-subpage {
 }
 
 @media (max-width: 959px) {
-  .dash-stack > .dash-greeting {
+  .dash-stack>.dash-greeting {
     order: -1;
   }
-  .dash-stack > .dash-order-overview {
+
+  .dash-stack>.dash-order-overview {
     order: 2;
   }
-  .dash-stack > .dash-order-flow {
+
+  .dash-stack>.dash-order-flow {
     order: 3;
   }
-  .dash-stack > .dash-order-health {
+
+  .dash-stack>.dash-order-health {
     order: 4;
   }
-  .dash-stack > .dash-order-insights {
+
+  .dash-stack>.dash-order-insights {
     order: 5;
   }
-  .dash-stack > .dash-order-spend {
+
+  .dash-stack>.dash-order-spend {
     order: 6;
   }
-  .dash-stack > .dash-order-budget {
+
+  .dash-stack>.dash-order-budget {
     order: 7;
   }
-  .dash-stack > .dash-order-goals {
+
+  .dash-stack>.dash-order-goals {
     order: 8;
   }
-  .dash-stack > .dash-order-upcoming {
+
+  .dash-stack>.dash-order-upcoming {
     order: 9;
   }
-  .dash-stack > .dash-order-tx {
+
+  .dash-stack>.dash-order-tx {
     order: 10;
   }
-  .dash-stack > .dash-order-invest {
+
+  .dash-stack>.dash-order-invest {
     order: 11;
   }
-  .dash-stack > .dash-order-debt {
+
+  .dash-stack>.dash-order-debt {
     order: 12;
   }
-  .dash-stack > .dash-order-moves {
+
+  .dash-stack>.dash-order-moves {
     order: 13;
   }
 
@@ -1673,15 +1798,29 @@ html[data-density="compact"] .dash-subpage {
   .dash-tx-table-wrap {
     display: none;
   }
+
   .dash-tx-cards {
     display: grid;
   }
 }
 
 .dash-tx-card {
-  padding: 0.85rem 1rem;
+  padding: 0.8rem 0.95rem;
   display: grid;
   gap: 0.45rem;
+  background: color-mix(in srgb, var(--cfo-bg-elevated) 35%, transparent);
+  border: 1px solid var(--cfo-line);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  transition: border-color var(--cfo-duration) var(--cfo-ease), transform var(--cfo-press) var(--cfo-ease);
+}
+
+.dash-tx-card:hover {
+  border-color: var(--cfo-line-strong);
+}
+
+.dash-tx-card:active {
+  transform: scale(0.99);
 }
 
 .dash-tx-card-head {
@@ -1693,30 +1832,31 @@ html[data-density="compact"] .dash-subpage {
 
 .dash-tx-card-date {
   font-family: var(--cfo-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.1em;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--cfo-ink-faint);
+  color: var(--cfo-ink-dim);
 }
 
 .dash-tx-card-amount {
   font-family: var(--cfo-mono);
-  font-size: 0.88rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 600;
   text-align: right;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dash-tx-card-body {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 .dash-tx-card-desc {
   font-size: 0.88rem;
   color: var(--cfo-ink);
-  font-weight: 400;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1727,8 +1867,8 @@ html[data-density="compact"] .dash-subpage {
   align-items: center;
   gap: 0.45rem;
   font-family: var(--cfo-mono);
-  font-size: 0.58rem;
-  letter-spacing: 0.08em;
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--cfo-ink-dim);
   flex-shrink: 0;
@@ -1739,7 +1879,7 @@ html[data-density="compact"] .dash-subpage {
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
   padding-top: 0.4rem;
   border-top: 1px solid var(--cfo-line);
 }
@@ -1797,11 +1937,17 @@ html[data-density="compact"] .dash-subpage {
   overflow-y: auto;
   margin: auto;
   box-shadow: var(--cfo-shadow);
+  background: var(--cfo-bg-elevated);
+}
+
+.dash-modal .cfo-panel {
+  background: var(--cfo-bg-elevated);
 }
 
 .dash-alert-dialog {
   width: min(440px, calc(100vw - 2rem));
   padding: 1.25rem 1.15rem;
+  background: var(--cfo-bg-elevated);
 }
 
 .dash-alert-dialog p {
@@ -1842,18 +1988,37 @@ html[data-density="compact"] .dash-subpage {
   background: color-mix(in srgb, var(--cfo-line-strong) 25%, transparent);
 }
 
-.dash-tx-card--clickable {
+.dash-tx-interactive-card {
   cursor: pointer;
   transition: border-color var(--cfo-duration) var(--cfo-ease), transform var(--cfo-press) var(--cfo-ease);
 }
 
-.dash-tx-card--clickable:hover {
-  border-color: color-mix(in srgb, var(--cfo-accent) 40%, var(--cfo-line-strong));
+.dash-tx-interactive-card:hover {
+  border-color: var(--cfo-line-strong);
+}
+
+.dash-tx-interactive-card:active {
+  transform: scale(0.99);
 }
 
 .dash-details-dialog {
   width: min(540px, calc(100vw - 2rem));
   padding: 1.35rem 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .dash-details-dialog {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100vw !important;
+    max-height: 92dvh;
+    border-radius: 12px 12px 0 0;
+    border-bottom: none;
+    padding: 1.15rem 1rem;
+    margin: 0;
+  }
 }
 
 .dash-details-hero {
@@ -2050,6 +2215,7 @@ html[data-density="compact"] .dash-subpage {
     background: #ffffff !important;
     color: #000000 !important;
   }
+
   .dash-sidebar,
   .dash-topnav,
   .dash-settings-tabs,
@@ -2058,6 +2224,7 @@ html[data-density="compact"] .dash-subpage {
   button {
     display: none !important;
   }
+
   .dash-content,
   .dash-subpage,
   .dash-content-inner {
@@ -2066,6 +2233,7 @@ html[data-density="compact"] .dash-subpage {
     max-width: 100% !important;
     width: 100% !important;
   }
+
   .cfo-statement-doc {
     border: none !important;
     padding: 0 !important;
@@ -2132,7 +2300,7 @@ html[data-density="compact"] .dash-subpage {
   background: var(--cfo-line);
 }
 
-.dash-onboarding-meter > span {
+.dash-onboarding-meter>span {
   display: block;
   height: 100%;
   width: calc(var(--onboard-step, 1) * 20%);
@@ -2393,7 +2561,7 @@ html[data-density="compact"] .dash-subpage {
   color: var(--cfo-ink-dim);
 }
 
-.dash-onboarding-policy-block + .dash-onboarding-policy-block {
+.dash-onboarding-policy-block+.dash-onboarding-policy-block {
   margin-top: 1.35rem;
 }
 
@@ -2604,7 +2772,7 @@ html[data-density="compact"] .dash-subpage {
     padding: 1rem 0.9rem 1.05rem;
   }
 
-  .dash-onboarding-panel .cfo-panel-head > span {
+  .dash-onboarding-panel .cfo-panel-head>span {
     display: none;
   }
 
@@ -2699,7 +2867,1610 @@ html[data-density="compact"] .dash-subpage {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   CARDS & CREDIT LINES SECTION (MOBILE-FIRST, LOW OPACITY)
+   Translucent frosted surfaces, fluid card scaling, touch-first composer
+═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Page Header ─────────────────────────────────────────────────────────── */
+.dash-cards-main-header {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.dash-cards-header-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.dash-cards-lead {
+  font-size: 0.82rem;
+  color: var(--cfo-ink-dim);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.dash-cards-primary-add {
+  width: 100%;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+}
+
+@media (min-width: 640px) {
+  .dash-cards-main-header {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .dash-cards-primary-add {
+    width: auto;
+    min-height: 36px;
+  }
+}
+
+/* ── KPI Metrics Grid (Mobile 2x2, Desktop 4x1) ─────────────────────────── */
+.dash-cards-kpi-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .dash-cards-kpi-summary-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+.dash-kpi-block {
+  padding: 0.65rem 0.75rem;
+  background: color-mix(in srgb, var(--cfo-bg-elevated) 35%, transparent);
+  border: 1px solid var(--cfo-line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  backdrop-filter: blur(8px);
+}
+
+.dash-kpi-block-lbl {
+  font-family: var(--cfo-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cfo-ink-dim);
+}
+
+.dash-kpi-block-val {
+  font-family: var(--cfo-mono);
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.dash-kpi-block-sub {
+  font-size: 0.68rem;
+  color: var(--cfo-ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── AI CFO Tip Banner (Translucent & Compact) ─────────────────────────── */
+.dash-cards-ai-tip {
+  padding: 0.75rem 0.85rem;
+  background: color-mix(in srgb, var(--cfo-accent) 4%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cfo-accent) 22%, transparent);
+  border-left: 3px solid var(--cfo-accent);
+  margin-bottom: 1rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.dash-cards-ai-tip-head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--cfo-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cfo-accent);
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.dash-cards-ai-tip-body p {
+  margin: 0;
+  color: var(--cfo-ink);
+}
+
+/* ── Section Container & Controls Bar ───────────────────────────────────── */
+.dash-cards-section-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.dash-cards-filter-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--cfo-line);
+}
+
+.dash-cards-search-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.dash-cards-search-icon {
+  position: absolute;
+  left: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--cfo-ink-dim);
+  pointer-events: none;
+}
+
+.dash-cards-search-input {
+  width: 100%;
+  height: 40px;
+  padding: 0 0.75rem 0 2rem;
+  font-size: 16px;
+  /* Prevents auto-zoom on iOS Safari */
+  background: color-mix(in srgb, var(--cfo-ink) 2%, transparent);
+  border: 1px solid var(--cfo-line);
+  color: var(--cfo-ink);
+  font-family: var(--cfo-sans);
+  border-radius: 0;
+  outline: none;
+  transition: border-color var(--cfo-duration) var(--cfo-ease);
+}
+
+.dash-cards-search-input:focus {
+  border-color: var(--cfo-accent);
+}
+
+@media (min-width: 640px) {
+  .dash-cards-search-input {
+    height: 34px;
+    font-size: 0.78rem;
+  }
+}
+
+.dash-cards-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.dash-cards-segment-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.dash-cards-segment-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.dash-cards-tab-pill {
+  font-family: var(--cfo-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  min-height: 36px;
+  padding: 0.35rem 0.65rem;
+  background: color-mix(in srgb, var(--cfo-ink) 2%, transparent);
+  border: 1px solid var(--cfo-line);
+  color: var(--cfo-ink-dim);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--cfo-duration) var(--cfo-ease);
+}
+
+.dash-cards-tab-pill:hover {
+  color: var(--cfo-ink);
+  border-color: var(--cfo-line-strong);
+}
+
+.dash-cards-tab-pill--active {
+  color: var(--cfo-ink);
+  background: color-mix(in srgb, var(--cfo-accent) 10%, transparent);
+  border-color: var(--cfo-accent);
+  font-weight: 600;
+}
+
+.dash-cards-view-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+
+.dash-view-btn {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 1px solid var(--cfo-line);
+  color: var(--cfo-ink-dim);
+  cursor: pointer;
+  transition: all var(--cfo-duration) var(--cfo-ease);
+}
+
+.dash-view-btn:hover {
+  color: var(--cfo-ink);
+  border-color: var(--cfo-line-strong);
+}
+
+.dash-view-btn--active {
+  background: color-mix(in srgb, var(--cfo-accent) 12%, transparent);
+  border-color: var(--cfo-accent);
+  color: var(--cfo-ink);
+}
+
+/* ── Fluid Cards Grid & Responsive Scaling ──────────────────────────────── */
+.dash-cards-fluid-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 900px) {
+  .dash-cards-fluid-grid {
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 1.15rem;
+  }
+}
+
+/* ── Single Card Container Box (Adaptive Mobile Stack & Desktop Side-by-Side) ─ */
+.dash-single-card-box {
+  display: grid;
+  grid-template-columns: 1fr;
+  padding: 0.85rem;
+  gap: 0.85rem;
+  background: color-mix(in srgb, var(--cfo-bg-elevated) 35%, transparent);
+  border: 1px solid var(--cfo-line);
+  backdrop-filter: blur(8px);
+  transition: border-color var(--cfo-duration) var(--cfo-ease);
+}
+
+@media (min-width: 680px) {
+
+  /* On wide screens / tablets when room is available, adapt to side-by-side */
+  .dash-single-card-box {
+    grid-template-columns: minmax(260px, 310px) minmax(0, 1fr);
+    padding: 1.15rem;
+    gap: 1.25rem;
+    align-items: center;
+  }
+}
+
+.dash-single-card-box:hover {
+  border-color: var(--cfo-line-strong);
+}
+
+.dash-single-card-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* ── Realistic Card Visual (Low Opacity Translucent Design) ─────────────── */
+.cfo-fin-card {
+  position: relative;
+  width: 100%;
+  max-width: min(380px, 100%);
+  aspect-ratio: 1.586 / 1;
+  border-radius: 10px;
+  padding: clamp(0.75rem, 3.2vw, 1rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fff;
+  user-select: none;
+}
+
+/* Filter Bar Responsive Adaptation */
+@media (min-width: 680px) {
+  .dash-cards-filter-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .dash-cards-search-wrap {
+    max-width: 280px;
+  }
+}
 
 
+/* Themes with reduced opacity & subtle translucent gradients */
+.cfo-fin-card--obsidian {
+  background: linear-gradient(135deg, rgba(32, 32, 32, 0.6) 0%, rgba(12, 12, 12, 0.8) 100%);
+  border-color: rgba(255, 255, 255, 0.14);
+}
 
+.cfo-fin-card--gold {
+  background: linear-gradient(135deg, rgba(65, 52, 25, 0.65) 0%, rgba(28, 22, 10, 0.8) 100%);
+  border-color: rgba(212, 175, 55, 0.35);
+}
 
+.cfo-fin-card--sapphire {
+  background: linear-gradient(135deg, rgba(20, 48, 85, 0.65) 0%, rgba(8, 22, 42, 0.8) 100%);
+  border-color: rgba(90, 155, 235, 0.3);
+}
+
+.cfo-fin-card--emerald {
+  background: linear-gradient(135deg, rgba(16, 58, 38, 0.65) 0%, rgba(7, 28, 18, 0.8) 100%);
+  border-color: rgba(85, 160, 115, 0.3);
+}
+
+.cfo-fin-card--ruby {
+  background: linear-gradient(135deg, rgba(75, 22, 30, 0.65) 0%, rgba(35, 8, 12, 0.8) 100%);
+  border-color: rgba(200, 95, 80, 0.3);
+}
+
+.cfo-fin-card--titanium {
+  background: linear-gradient(135deg, rgba(55, 62, 70, 0.65) 0%, rgba(28, 32, 38, 0.8) 100%);
+  border-color: rgba(185, 195, 205, 0.25);
+}
+
+.cfo-fin-card--violet {
+  background: linear-gradient(135deg, rgba(50, 22, 75, 0.65) 0%, rgba(22, 8, 35, 0.8) 100%);
+  border-color: rgba(165, 110, 215, 0.3);
+}
+
+.cfo-fin-card--cyberpunk {
+  background: linear-gradient(135deg, rgba(42, 22, 10, 0.7) 0%, rgba(18, 8, 3, 0.85) 100%);
+  border-color: var(--cfo-accent);
+}
+
+/* Card Internal Typography & Elements */
+.cfo-fin-card-top {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem;
+}
+
+.cfo-fin-card-bank {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--cfo-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cfo-fin-card-bank-icon {
+  color: rgba(255, 255, 255, 0.7);
+  flex-shrink: 0;
+}
+
+.cfo-fin-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.cfo-fin-card-pill {
+  font-family: var(--cfo-mono);
+  font-size: 0.5rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.12rem 0.35rem;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.cfo-fin-card-pill--gold {
+  background: rgba(212, 175, 55, 0.2);
+  color: #dfc278;
+}
+
+.cfo-fin-card-pill--credit {
+  background: rgba(196, 92, 38, 0.22);
+  color: #ffaa7d;
+}
+
+.cfo-fin-card-pill--debit {
+  background: rgba(95, 166, 122, 0.22);
+  color: #8ce2ac;
+}
+
+.cfo-fin-card-chip-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.2rem 0;
+}
+
+.cfo-fin-chip {
+  position: relative;
+  width: 28px;
+  height: 20px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #caa030 0%, #906e08 50%, #d8b850 100%);
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.cfo-fin-chip-lines {
+  position: absolute;
+  inset: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 1px;
+}
+
+.cfo-fin-contactless {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.cfo-fin-card-number-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cfo-fin-card-number {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.25rem, 1.8vw, 0.5rem);
+  font-family: var(--cfo-mono);
+  font-size: clamp(0.82rem, 3.8vw, 0.92rem);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.cfo-fin-card-last4 {
+  font-weight: 700;
+  color: #fff;
+}
+
+.cfo-fin-card-copy-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: grid;
+  place-items: center;
+  min-width: 36px;
+  min-height: 36px;
+  transition: color var(--cfo-duration) var(--cfo-ease);
+}
+
+.cfo-fin-card-copy-btn:hover {
+  color: #fff;
+}
+
+.cfo-fin-card-bottom {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.cfo-fin-card-holder,
+.cfo-fin-card-expiry {
+  display: flex;
+  flex-direction: column;
+}
+
+.cfo-fin-card-label {
+  font-family: var(--cfo-mono);
+  font-size: 0.45rem;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.cfo-fin-card-val {
+  font-family: var(--cfo-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 115px;
+}
+
+.cfo-fin-card-network-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.cfo-card-network {
+  font-family: var(--cfo-sans);
+  font-weight: 800;
+  font-style: italic;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+}
+
+.cfo-card-network--visa {
+  color: #fff;
+  letter-spacing: 0.06em;
+}
+
+.cfo-card-network--mc {
+  display: inline-flex;
+  align-items: center;
+}
+
+.cfo-mc-circle {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.cfo-mc-circle--red {
+  background: #eb001b;
+  margin-right: -5px;
+}
+
+.cfo-mc-circle--yellow {
+  background: #f79e1b;
+  opacity: 0.9;
+}
+
+.cfo-card-network--rupay {
+  color: #008cd2;
+  font-style: normal;
+  font-size: 0.75rem;
+  font-weight: 900;
+}
+
+.cfo-card-network--amex {
+  color: #0077a6;
+  font-style: normal;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.cfo-card-network--diners {
+  color: #004a98;
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.cfo-card-network--generic {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.68rem;
+}
+
+.cfo-fin-card--frozen {
+  filter: grayscale(0.8) contrast(0.85);
+}
+
+.cfo-fin-card-frozen-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  color: #ffaa7d;
+  font-family: var(--cfo-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+.cfo-fin-card-unfreeze-btn {
+  font-size: 0.68rem;
+  padding: 0.2rem 0.55rem;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* ── Card Content & Details (Single Card Box) ───────────────────────────── */
+.dash-single-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.dash-single-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.dash-single-card-title-wrap {
+  min-width: 0;
+}
+
+.dash-single-card-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--cfo-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dash-single-card-sub {
+  font-size: 0.7rem;
+  color: var(--cfo-ink-dim);
+  margin: 0.1rem 0 0;
+}
+
+.dash-card-toggle-lock-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--cfo-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.3rem 0.55rem;
+  background: transparent;
+  border: 1px solid var(--cfo-line);
+  color: var(--cfo-ink-dim);
+  cursor: pointer;
+  min-height: 34px;
+  transition: all var(--cfo-duration) var(--cfo-ease);
+}
+
+.dash-card-toggle-lock-btn:hover {
+  border-color: var(--cfo-line-strong);
+  color: var(--cfo-ink);
+}
+
+.dash-card-toggle-lock-btn--locked {
+  border-color: var(--cfo-danger);
+  color: var(--cfo-danger);
+  background: color-mix(in srgb, var(--cfo-danger) 8%, transparent);
+}
+
+.dash-single-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.5rem 0.65rem;
+  background: color-mix(in srgb, var(--cfo-ink) 2%, transparent);
+  border: 1px solid var(--cfo-line);
+}
+
+.dash-single-card-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.35rem;
+}
+
+.dash-sc-metric {
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-sc-metric-label {
+  font-size: 0.62rem;
+  color: var(--cfo-ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.dash-sc-metric-val {
+  font-family: var(--cfo-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 0.05rem;
+}
+
+.dash-sc-util-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--cfo-line);
+}
+
+.dash-sc-util-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--cfo-mono);
+  font-size: 0.62rem;
+  color: var(--cfo-ink-dim);
+}
+
+.dash-sc-reward-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  color: var(--cfo-ink-dim);
+  padding: 0.25rem 0.4rem;
+  background: color-mix(in srgb, var(--cfo-accent) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cfo-accent) 15%, transparent);
+  line-height: 1.35;
+}
+
+/* ── Card Touch Actions Footer ──────────────────────────────────────────── */
+.dash-single-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid var(--cfo-line);
+}
+
+.dash-sc-primary-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dash-sc-btn {
+  font-size: 0.72rem;
+  padding: 0.3rem 0.65rem;
+  min-height: 36px;
+}
+
+.dash-sc-btn--pay {
+  border-color: var(--cfo-accent);
+  color: var(--cfo-accent);
+}
+
+.dash-sc-default-tag {
+  font-family: var(--cfo-mono);
+  font-size: 0.65rem;
+  color: var(--cfo-ink-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.dash-sc-icon-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-left: auto;
+}
+
+.dash-sc-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: transparent;
+  border: 1px solid var(--cfo-line);
+  color: var(--cfo-ink-dim);
+  cursor: pointer;
+  transition: all var(--cfo-duration) var(--cfo-ease);
+}
+
+.dash-sc-icon-btn:hover {
+  color: var(--cfo-ink);
+  border-color: var(--cfo-line-strong);
+}
+
+.dash-sc-icon-btn--danger:hover {
+  color: var(--cfo-danger);
+  border-color: var(--cfo-danger);
+}
+
+/* ── Card Composer (Mobile Bottom Sheet / Desktop Modal) ────────────────── */
+.dash-card-composer-modal {
+  width: 100% !important;
+  max-width: 580px !important;
+  max-height: 92dvh;
+  margin: auto;
+  border: 1px solid var(--cfo-line);
+  background: var(--cfo-bg-elevated);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+@media (max-width: 640px) {
+  .dash-card-composer-modal {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: 94dvh;
+    border-radius: 12px 12px 0 0;
+    border-bottom: none;
+  }
+}
+
+.dash-composer-sheet {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 92dvh;
+  overflow: hidden;
+}
+
+.dash-composer-sticky-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--cfo-line);
+  background: color-mix(in srgb, var(--cfo-bg-elevated) 90%, transparent);
+  flex-shrink: 0;
+}
+
+.dash-composer-head-title {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.dash-composer-head-title h3 {
+  font-size: 0.88rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--cfo-ink);
+}
+
+.dash-sheet-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--cfo-ink-dim);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  padding: 0.25rem;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+.dash-sheet-close-btn:hover {
+  color: var(--cfo-ink);
+}
+
+.dash-composer-scroll-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.85rem 1rem;
+}
+
+.dash-composer-preview-wrap {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--cfo-line);
+  margin-bottom: 0.85rem;
+}
+
+.dash-composer-preview-inner {
+  width: 100%;
+  max-width: 290px;
+}
+
+.dash-composer-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dash-type-segmented-control {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
+}
+
+.dash-type-seg-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 42px;
+  font-family: var(--cfo-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: color-mix(in srgb, var(--cfo-ink) 2%, transparent);
+  border: 1px solid var(--cfo-line);
+  color: var(--cfo-ink-dim);
+  cursor: pointer;
+  transition: all var(--cfo-duration) var(--cfo-ease);
+}
+
+.dash-type-seg-btn--active {
+  background: color-mix(in srgb, var(--cfo-accent) 12%, transparent);
+  border-color: var(--cfo-accent);
+  color: var(--cfo-ink);
+  font-weight: 600;
+}
+
+.dash-theme-swatches-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.35rem;
+}
+
+@media (max-width: 480px) {
+  .dash-theme-swatches-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.dash-theme-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  background: color-mix(in srgb, var(--cfo-ink) 2%, transparent);
+  border: 1px solid var(--cfo-line);
+  color: var(--cfo-ink-dim);
+  cursor: pointer;
+  font-size: 0.68rem;
+  min-height: 36px;
+  transition: all var(--cfo-duration) var(--cfo-ease);
+}
+
+.dash-theme-btn:hover {
+  border-color: var(--cfo-line-strong);
+  color: var(--cfo-ink);
+}
+
+.dash-theme-btn--active {
+  border-color: var(--cfo-accent);
+  background: color-mix(in srgb, var(--cfo-accent) 10%, transparent);
+  color: var(--cfo-ink);
+  font-weight: 600;
+}
+
+.dash-theme-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.dash-form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 520px) {
+  .dash-form-row {
+    flex-direction: row;
+    gap: 0.65rem;
+  }
+}
+
+.dash-form-section-box {
+  padding: 0.75rem;
+  background: color-mix(in srgb, var(--cfo-ink) 1.5%, transparent);
+  border: 1px solid var(--cfo-line);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.dash-form-section-title {
+  font-family: var(--cfo-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cfo-ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-weight: 600;
+}
+
+.dash-touch-check-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.76rem;
+  color: var(--cfo-ink);
+  cursor: pointer;
+  min-height: 36px;
+}
+
+.dash-composer-sticky-foot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--cfo-line);
+  background: color-mix(in srgb, var(--cfo-bg-elevated) 90%, transparent);
+  flex-shrink: 0;
+}
+
+.dash-sheet-btn {
+  flex: 1;
+  min-height: 44px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dash-sheet-btn--submit {
+  flex: 1.5;
+}
+
+/* ── Pay Bill Modal / Sheet ─────────────────────────────────────────────── */
+.dash-pay-bill-sheet {
+  max-width: 440px !important;
+  width: calc(100vw - 1.5rem) !important;
+  margin: auto;
+}
+
+@media (max-width: 640px) {
+  .dash-pay-bill-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100vw !important;
+    max-height: 90dvh;
+    border-radius: 12px 12px 0 0;
+    border-bottom: none;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE / FLUID LAYER
+   Paste at the VERY END of your dashboard stylesheet (it overrides earlier
+   rules by source order). Nothing above needs to be deleted.
+   Strategy: fluid sizing (clamp) → container queries for components →
+   a few viewport breakpoints only for the shell (sidebar, topbar).
+═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --dash-gutter: clamp(0.85rem, 2.5vw, 1.5rem);
+  --dash-gap: clamp(0.6rem, 1.4vw, 1rem);
+  --dash-tap: 44px;
+  --dash-safe-b: env(safe-area-inset-bottom, 0px);
+  --dash-safe-t: env(safe-area-inset-top, 0px);
+  --dash-safe-l: env(safe-area-inset-left, 0px);
+  --dash-safe-r: env(safe-area-inset-right, 0px);
+}
+
+/* ── Base: fluid root size, stable viewport height, no sideways scroll ───── */
+html {
+  font-size: clamp(16px, 15.2px + 0.2vw, 17px);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.dash-root {
+  height: 100vh;
+  /* fallback */
+  height: 100dvh;
+  max-width: 100vw;
+}
+
+.dash-main,
+.dash-content,
+.dash-route {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.dash-content {
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scroll-padding-top: 1rem;
+}
+
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── Shell: safe areas + fluid padding ───────────────────────────────────── */
+.dash-top {
+  padding-left: max(var(--dash-gutter), var(--dash-safe-l));
+  padding-right: max(var(--dash-gutter), var(--dash-safe-r));
+  padding-top: var(--dash-safe-t);
+  height: calc(52px + var(--dash-safe-t));
+}
+
+.dash-content-inner {
+  padding: var(--dash-gutter) max(var(--dash-gutter), var(--dash-safe-r)) calc(5.5rem + var(--dash-safe-b)) max(var(--dash-gutter), var(--dash-safe-l));
+  gap: var(--dash-gap);
+}
+
+.dash-top-title {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Dropdowns / popovers never exceed the screen */
+.dash-menu {
+  min-width: min(220px, calc(100vw - 1.5rem));
+  max-width: calc(100vw - 1rem);
+  max-height: calc(100dvh - 5rem);
+  overflow-y: auto;
+}
+
+.dash-mobile-search-backdrop {
+  display: block;
+  position: fixed;
+  inset: 0;
+  background: var(--cfo-scrim);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 110;
+}
+
+.dash-search-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100vw;
+  max-width: 100vw;
+  margin: 0;
+  padding: max(0.65rem, env(safe-area-inset-top)) 0.85rem 1rem;
+  border-radius: 0 0 16px 16px;
+  border: none;
+  border-bottom: 1px solid var(--cfo-line-strong);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+  z-index: 120;
+  max-height: 85dvh;
+  overflow-y: auto;
+}
+
+.dash-search-field {
+  height: 44px;
+  font-size: 16px; /* Prevents auto-zoom on iOS Safari */
+  border-radius: 6px;
+}
+
+.dash-search-cancel-btn {
+  background: color-mix(in srgb, var(--cfo-ink) 4%, transparent);
+  border: 1px solid var(--cfo-line);
+  color: var(--cfo-ink);
+  font-size: 0.78rem;
+  font-family: var(--cfo-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 0.85rem;
+  height: 44px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.dash-search-result-item {
+  min-height: 44px;
+  font-size: 0.9rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.dash-search-cfo-btn {
+  min-height: 44px;
+  font-size: 0.88rem;
+}
+
+/* Mobile drawer */
+.dash-drawer {
+  width: min(300px, 86vw);
+  padding-top: var(--dash-safe-t);
+  padding-bottom: var(--dash-safe-b);
+  padding-left: var(--dash-safe-l);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Floating "Ask" button + panel respect notches / home indicator */
+.dash-ask-btn {
+  right: max(1rem, var(--dash-safe-r));
+  bottom: max(1rem, var(--dash-safe-b));
+}
+
+.dash-ask {
+  right: max(1rem, var(--dash-safe-r));
+  bottom: calc(4.2rem + var(--dash-safe-b));
+  width: min(420px, calc(100vw - 2rem));
+  max-height: calc(100dvh - 6rem - var(--dash-safe-b));
+  overflow-y: auto;
+}
+
+/* ── Fluid typography for headings / big numbers ─────────────────────────── */
+.dash-greeting h1 {
+  font-size: clamp(1.75rem, 1.2rem + 2.2vw, 2.4rem);
+}
+
+.dash-subpage h1 {
+  font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2.1rem);
+}
+
+.dash-metric-value {
+  font-size: clamp(1.45rem, 1.1rem + 1.2vw, 1.95rem);
+}
+
+.dash-details-amount {
+  font-size: clamp(1.7rem, 1.2rem + 2vw, 2.3rem);
+}
+
+/* ── Grids that adapt to available space instead of fixed breakpoints ────── */
+.dash-overview {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+}
+
+.dash-insights,
+.dash-moves {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+}
+
+.dash-split {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+}
+
+/* Dashboard two-column layout only when there is genuinely room */
+@media (min-width: 1100px) {
+  .dash-content-inner.dash-stack {
+    grid-template-columns: minmax(280px, 0.92fr) minmax(0, 1.28fr);
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1099px) {
+  .dash-content-inner.dash-stack {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Wide monitors: a little more room, and don't let lines run forever */
+@media (min-width: 1600px) {
+  .dash-content-inner {
+    width: min(1440px, 100%);
+  }
+}
+
+/* ── Tablet band (720–959): shell still single-column, content 2-up ─────── */
+@media (min-width: 720px) and (max-width: 959px) {
+  .dash-top {
+    padding-left: max(1.15rem, var(--dash-safe-l));
+    padding-right: max(1.15rem, var(--dash-safe-r));
+  }
+}
+
+/* ── Tables: scroll gracefully, keep readable ────────────────────────────── */
+.dash-table-wrap,
+.dash-tx-table-wrap {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+.dash-table {
+  min-width: 480px;
+}
+
+.dash-table td:nth-child(2) {
+  min-width: 10ch;
+}
+
+/* Switch tx table → cards a bit earlier than 640 on narrow tablets */
+@media (max-width: 720px) {
+  .dash-tx-table-wrap {
+    display: none;
+  }
+
+  .dash-tx-cards {
+    display: grid;
+  }
+}
+
+/* ── Modals become bottom sheets on phones ───────────────────────────────── */
+.dash-modal {
+  max-width: calc(100vw - 2rem);
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 640px) {
+
+  .dash-modal,
+  .dash-alert-dialog,
+  .dash-details-dialog {
+    inset: auto 0 0 0;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    max-height: 92dvh;
+    border-radius: 14px 14px 0 0;
+    padding-bottom: calc(1.25rem + var(--dash-safe-b));
+  }
+
+  .dash-logout-dialog {
+    width: calc(100vw - 2rem);
+  }
+
+  .dash-modal-actions,
+  .dash-logout-actions {
+    flex-direction: column-reverse;
+  }
+
+  .dash-modal-actions .cfo-btn,
+  .dash-logout-actions .cfo-btn {
+    width: 100%;
+    min-height: var(--dash-tap);
+  }
+
+  .dash-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Ask panel → full-width bottom sheet */
+  .dash-ask {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: 85dvh;
+    border-radius: 14px 14px 0 0;
+    padding-bottom: calc(1.1rem + var(--dash-safe-b));
+  }
+
+  .dash-composer-sticky-foot {
+    padding-bottom: calc(0.75rem + var(--dash-safe-b));
+  }
+
+  .dash-page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* ── Cards & credit lines: respond to the container, not the viewport ───── */
+.dash-cards-section-container {
+  container-type: inline-size;
+  container-name: cards;
+}
+
+.dash-cards-fluid-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+}
+
+/* Undo the viewport-based side-by-side layout, then re-apply by container */
+.dash-single-card-box {
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  padding: 0.85rem;
+  gap: 0.85rem;
+}
+
+@container cards (min-width: 640px) {
+  .dash-single-card-box {
+    grid-template-columns: minmax(240px, 310px) minmax(0, 1fr);
+    padding: 1.15rem;
+    gap: 1.25rem;
+    align-items: center;
+  }
+}
+
+/* Filter bar stacks/unstacks by container width too */
+.dash-cards-filter-bar {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+@container cards (min-width: 560px) {
+  .dash-cards-filter-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .dash-cards-search-wrap {
+    max-width: 280px;
+  }
+}
+
+/* Keep the card visual crisp at any width */
+.cfo-fin-card {
+  max-width: min(380px, 100%);
+  container-type: inline-size;
+}
+
+@container (max-width: 260px) {
+  .cfo-fin-card-number {
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+  }
+
+  .cfo-fin-card-val {
+    max-width: 90px;
+  }
+}
+
+/* Card footer wraps rather than overflowing on small screens */
+.dash-single-card-footer {
+  flex-wrap: wrap;
+}
+
+.dash-single-card-metrics-grid {
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+}
+
+/* ── Onboarding: keep stepper usable on narrow widths ────────────────────── */
+.dash-onboarding-budget-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+}
+
+@media (max-width: 480px) {
+  .dash-onboarding-budget-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .dash-onboarding-budget-row> :first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ── Touch devices: bigger targets, no hover-dependent UI ────────────────── */
+@media (hover: none) and (pointer: coarse) {
+
+  .dash-icon-btn,
+  .dash-view-btn,
+  .dash-sc-icon-btn,
+  .dash-collapse {
+    min-width: var(--dash-tap);
+    min-height: var(--dash-tap);
+  }
+
+  .dash-nav-link,
+  .dash-menu button,
+  .dash-menu a,
+  .dash-prompts button {
+    min-height: var(--dash-tap);
+  }
+
+  .dash-quiet,
+  .dash-card-toggle-lock-btn,
+  .dash-sc-btn,
+  .dash-range button {
+    min-height: 40px;
+  }
+
+  .dash-tx-actions .dash-icon-btn,
+  .dash-tx-card-actions .dash-icon-btn,
+  .dash-row-actions .dash-icon-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  /* Tooltips are hover-only: hide them on touch */
+  .dash-tip {
+    display: none;
+  }
+
+  /* iOS zooms inputs under 16px */
+  .cfo-input,
+  select.cfo-input,
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+/* Mobile readability: lift the tiniest mono micro-labels */
+@media (max-width: 640px) {
+
+  .dash-metric-label,
+  .dash-delta,
+  .dash-updated,
+  .dash-legend,
+  .dash-goal-meta,
+  .dash-upcoming-item time,
+  .dash-table th,
+  .dash-details-label,
+  .dash-kpi-block-lbl {
+    font-size: max(0.64rem, 10.5px);
+  }
+
+  .dash-actions .dash-quiet {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
+  .dash-chart {
+    height: clamp(180px, 45vw, 240px);
+  }
+
+  .dash-upcoming-item {
+    grid-template-columns: 3.4rem 1fr auto;
+    gap: 0.5rem;
+  }
+}
+
+/* Short landscape phones: don't let sheets/menus overflow vertically */
+@media (max-height: 480px) and (orientation: landscape) {
+
+  .dash-modal,
+  .dash-card-composer-modal,
+  .dash-ask {
+    max-height: 96dvh;
+  }
+
+  .dash-content-inner {
+    padding-bottom: 4rem;
+  }
+}
+
+/* Large desktop: let the chart breathe */
+@media (min-width: 1280px) {
+  .dash-chart {
+    height: 260px;
+  }
+}
+
+/* Respect users who prefer less motion for the new bits too */
+@media (prefers-reduced-motion: reduce) {
+  .dash-bar i {
+    transition: none;
+  }
+}

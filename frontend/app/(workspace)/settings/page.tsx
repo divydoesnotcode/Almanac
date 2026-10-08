@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 import { SettingsHub } from "@/components/dashboard/settings-hub";
 
-export const metadata: Metadata = { title: "Settings — Almanac" };
+export const metadata: Metadata = { title: "Settings — The Almanac" };
 
 export default function SettingsPage() {
   return (

@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { SettingsHub } from "@/components/dashboard/settings-hub";
 
 export const metadata: Metadata = {
-  title: "Accounts — Almanac",
+  title: "Accounts — The Almanac",
   description: "Manage checking, savings, cash, and investment accounts.",
 };
 

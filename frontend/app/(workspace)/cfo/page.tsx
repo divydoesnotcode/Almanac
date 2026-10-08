@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { LedgerSubpage } from "@/components/dashboard/subpage";
 
-export const metadata: Metadata = { title: "AI CFO — Almanac" };
+export const metadata: Metadata = { title: "AI CFO — The Almanac" };
 
 export default function CfoPage() {
   return (

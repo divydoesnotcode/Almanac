@@ -1,6 +1,6 @@
 You are an expert Next.js + CSS frontend engineer specializing in premium, conversion-focused landing pages.
 
-Create a complete, production-ready landing page for the project **AI Personal CFO**.
+Create a complete, production-ready landing page for the project **The The Almanac**.
 
 ### STRICT RULES
 - ONLY frontend changes. No backend, no API calls, no authentication, no database.
@@ -41,7 +41,7 @@ Create a complete, production-ready landing page for the project **AI Personal C
    - Closing line: “You don’t need more charts. You need a financial co-pilot.”
 
 3. **Solution Section**
-   - Headline introducing AI Personal CFO as a private financial co-pilot.
+   - Headline introducing The The Almanac as a private financial co-pilot.
    - Short paragraph.
    - Three pillars with icons: True Cash Position • Pattern Detection • Goal Intelligence
 

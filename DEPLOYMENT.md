@@ -1,7 +1,7 @@
 # 🚀 100% Free Production Deployment Guide
-### AI Personal CFO — Full-Stack Live Deployment Manual
+### The The Almanac — Full-Stack Live Deployment Manual
 
-This guide walks through deploying the entire **AI Personal CFO** stack for **$0 / month** using free-tier services:
+This guide walks through deploying the entire **The The Almanac** stack for **$0 / month** using free-tier services:
 
 ```
 ┌─────────────────────────┐      HTTPS / REST      ┌─────────────────────────┐     SSL (psycopg3)    ┌─────────────────────────┐

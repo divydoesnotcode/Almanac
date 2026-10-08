@@ -4,8 +4,8 @@ import { AuthShell } from "../auth-shell";
 import { SigninForm } from "./signin-form";
 
 export const metadata: Metadata = {
-  title: "Sign in — Almanac",
-  description: "Return to an existing Almanac ledger identity.",
+  title: "Sign in — The Almanac",
+  description: "Return to an existing The Almanac ledger identity.",
 };
 
 export default function SigninPage() {

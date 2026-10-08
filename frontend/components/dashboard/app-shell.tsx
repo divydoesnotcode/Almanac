@@ -151,19 +151,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className={`dash-root${isGettingStarted ? " dash-root--onboarding" : ""}`}>
         <LoadingIndicator active={loading || refreshing} />
         {!isGettingStarted && (
-          <motion.aside
+          <aside
             className={`dash-sidebar${collapsed ? " dash-sidebar--collapsed" : ""}`}
             aria-label="Primary"
-            initial={false}
-            animate={{ width: collapsed ? 64 : 232 }}
-            transition={{ duration, ease: [0.22, 1, 0.36, 1] }}
           >
             <Sidebar
               collapsed={collapsed}
               onToggle={toggleCollapsed}
               onLogout={requestLogout}
             />
-          </motion.aside>
+          </aside>
         )}
 
         <div className="dash-main">
@@ -176,46 +173,35 @@ export function AppShell({ children }: { children: ReactNode }) {
             minimal={isGettingStarted}
           />
           <div className="dash-content" ref={contentRef}>
-            <AnimatePresence mode="popLayout" initial={false}>
-              <motion.div
-                key={pathname}
-                className="dash-route"
-                initial={reduced ? false : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={reduced ? { opacity: 1 } : { opacity: 0, y: -8 }}
-                transition={{
-                  duration: reduced ? 0 : 0.26,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-              >
-                {children}
-              </motion.div>
-            </AnimatePresence>
+            <motion.div
+              key={pathname}
+              className="dash-route"
+              initial={reduced ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: reduced ? 0 : 0.5,
+                ease: [0.16, 1, 0.3, 1], // 0.5-second buttery smooth curve
+              }}
+            >
+              {children}
+            </motion.div>
           </div>
         </div>
 
         <AnimatePresence>
           {drawer ? (
             <>
-              <motion.button
+              <button
                 type="button"
                 className="dash-drawer-backdrop"
                 aria-label="Close menu"
                 onClick={() => setDrawer(false)}
-                initial={{ opacity: reduced ? 1 : 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.5 }}
               />
-              <motion.aside
+              <aside
                 className="dash-drawer"
                 role="dialog"
                 aria-modal="true"
                 aria-label="Navigation"
-                initial={reduced ? false : { x: -24, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                exit={reduced ? { opacity: 0 } : { x: -16, opacity: 0 }}
-                transition={{ duration, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div className="dash-sidebar-brand">
                   <span className="dash-mark" aria-hidden="true">
@@ -223,7 +209,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   </span>
                   <span className="dash-brand-copy">
                     <strong>CFO // LEDGER</strong>
-                    <span>Almanac</span>
+                    <span>The Almanac</span>
                   </span>
                   <button
                     type="button"
@@ -243,7 +229,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   showBrand={false}
                   showCollapse={false}
                 />
-              </motion.aside>
+              </aside>
             </>
           ) : null}
         </AnimatePresence>
@@ -251,27 +237,17 @@ export function AppShell({ children }: { children: ReactNode }) {
         <AnimatePresence>
           {logoutOpen ? (
             <>
-              <motion.button
-                type="button"
+              <div
                 className="dash-logout-backdrop"
                 aria-label="Cancel logout"
                 onClick={cancelLogout}
-                disabled={logoutBusy}
-                initial={{ opacity: reduced ? 1 : 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration }}
               />
-              <motion.section
+              <section
                 className="cfo-panel dash-logout-dialog"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="logout-title"
                 aria-describedby="logout-message"
-                initial={reduced ? false : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={reduced ? { opacity: 0 } : { opacity: 0, y: 6 }}
-                transition={{ duration, ease: [0.22, 1, 0.36, 1] }}
               >
                 <div className="cfo-panel-head">
                   <strong id="logout-title">Logout?</strong>
@@ -302,7 +278,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     {logoutBusy ? "Logging out…" : "Logout"}
                   </button>
                 </div>
-              </motion.section>
+              </section>
             </>
           ) : null}
         </AnimatePresence>

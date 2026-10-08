@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Bell, LogOut, Menu, Search, X } from "lucide-react";
+import { Bell, LogOut, Menu, Search, Sparkles, X } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PRIMARY_NAV, PROFILE_MENU, SECONDARY_NAV } from "@/lib/dashboard/nav";
@@ -29,6 +30,7 @@ export function TopNav({
   onLogout,
   minimal = false,
 }: TopNavProps) {
+  const pathname = usePathname();
   const { openPanel } = useAskCfo();
   const reduced = useReducedMotion();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -37,6 +39,23 @@ export function TopNav({
   const [query, setQuery] = useState("");
   const [debounced, setDebounced] = useState("");
   const rootRef = useRef<HTMLElement>(null);
+
+  const activeTitle = useMemo(() => {
+    if (pathname === "/cards" || pathname.startsWith("/cards/")) return "Cards";
+    if (pathname === "/dashboard") return "Dashboard";
+    if (pathname === "/transactions" || pathname.startsWith("/transactions/")) return "Transactions";
+    if (pathname === "/budgets" || pathname.startsWith("/budgets/")) return "Budgets";
+    if (pathname === "/goals" || pathname.startsWith("/goals/")) return "Goals";
+    if (pathname === "/investments" || pathname.startsWith("/investments/")) return "Investments";
+    if (pathname === "/debt" || pathname.startsWith("/debt/")) return "Debt";
+    if (pathname === "/cfo" || pathname.startsWith("/cfo/")) return "AI CFO";
+    if (pathname === "/reports" || pathname.startsWith("/reports/")) return "Reports";
+    if (pathname === "/settings" || pathname.startsWith("/settings/")) return "Settings";
+    if (pathname === "/profile" || pathname.startsWith("/profile/")) return "Profile";
+    if (pathname === "/preferences" || pathname.startsWith("/preferences/")) return "Preferences";
+    if (pathname === "/security" || pathname.startsWith("/security/")) return "Security";
+    return "Almanac";
+  }, [pathname]);
 
   useEffect(() => {
     const timer = window.setTimeout(
@@ -98,7 +117,7 @@ export function TopNav({
       <header className="dash-top" ref={rootRef}>
         <div className="dash-top-left">
           <p className="dash-top-title" style={{ display: "block" }}>
-            AI Personal <span>CFO</span>
+            <strong>Almanac</strong>
             <span className="dash-onboarding-top-phase"> · Initialization</span>
           </p>
         </div>
@@ -129,15 +148,9 @@ export function TopNav({
         >
           <Menu size={16} aria-hidden="true" />
         </button>
-        {collapsed ? (
-          <p className="dash-top-title dash-desktop-only">
-            AI Personal <span>CFO</span>
-          </p>
-        ) : (
-          <p className="dash-top-title dash-mobile-only">
-            AI Personal <span>CFO</span>
-          </p>
-        )}
+        <p className="dash-top-title">
+          <strong>{activeTitle}</strong>
+        </p>
       </div>
 
       <div className="dash-top-right">
@@ -157,57 +170,97 @@ export function TopNav({
             {searchOpen ? <X size={15} /> : <Search size={15} />}
           </button>
           <AnimatePresence initial={false}>
-            {searchOpen ? (
-              <motion.div
-                className="dash-search-overlay"
-                role="search"
-                {...overlayMotion}
-              >
-                <input
-                  className="cfo-input"
-                  autoFocus
-                  placeholder="Search the ledger…"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  aria-label="Search"
+            {searchOpen && (
+              <>
+                <motion.div
+                  key="search-backdrop"
+                  className="dash-mobile-search-backdrop"
+                  onClick={() => setSearchOpen(false)}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
                 />
-                <div
-                  className="dash-menu"
-                  style={{
-                    position: "relative",
-                    right: 0,
-                    top: 8,
-                    minWidth: 0,
-                  }}
+                <motion.div
+                  key="search-overlay"
+                  className="dash-search-overlay"
+                  role="search"
+                  {...overlayMotion}
                 >
-                  {results.length === 0 ? (
-                    <p className="dash-notify-item">
-                      <strong>No matches</strong>
-                      <span>Try a destination name.</span>
-                    </p>
-                  ) : (
-                    results.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setSearchOpen(false)}
-                      >
-                        {item.label}
-                      </Link>
-                    ))
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchOpen(false);
-                      openPanel(query);
-                    }}
-                  >
-                    Ask your CFO
-                  </button>
-                </div>
-              </motion.div>
-            ) : null}
+                  <div className="dash-search-input-row">
+                    <div className="dash-search-input-wrap">
+                      <Search size={15} className="dash-search-input-icon" aria-hidden="true" />
+                      <input
+                        className="cfo-input dash-search-field"
+                        autoFocus
+                        placeholder="Search pages, cards, ledger…"
+                        value={query}
+                        onChange={(event) => setQuery(event.target.value)}
+                        aria-label="Search destination or ledger"
+                      />
+                      {query.length > 0 && (
+                        <button
+                          type="button"
+                          className="dash-search-clear-btn"
+                          onClick={() => setQuery("")}
+                          aria-label="Clear search input"
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className="dash-search-cancel-btn dash-mobile-only"
+                      onClick={() => setSearchOpen(false)}
+                    >
+                      Done
+                    </button>
+                  </div>
+
+                  <div className="dash-search-results">
+                    {results.length === 0 ? (
+                      <div className="dash-notify-item">
+                        <strong>No direct destination</strong>
+                        <span>Press Ask CFO below to query your ledger.</span>
+                      </div>
+                    ) : (
+                      results.map((item) => {
+                        const isCurrent =
+                          pathname === item.href ||
+                          (item.href !== "/dashboard" && pathname.startsWith(item.href));
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`dash-search-result-item ${
+                              isCurrent ? "dash-search-result-item--active" : ""
+                            }`}
+                            onClick={() => setSearchOpen(false)}
+                          >
+                            <span>{item.label}</span>
+                            {isCurrent && (
+                              <span className="cfo-badge cfo-badge--ok">Current</span>
+                            )}
+                          </Link>
+                        );
+                      })
+                    )}
+                    <button
+                      type="button"
+                      className="dash-search-cfo-btn"
+                      onClick={() => {
+                        setSearchOpen(false);
+                        openPanel(query);
+                      }}
+                    >
+                      <Sparkles size={14} className="dash-accent" />
+                      <span>{query.trim() ? `Ask CFO: "${query}"` : "Ask your AI CFO"}</span>
+                    </button>
+                  </div>
+                </motion.div>
+              </>
+            )}
           </AnimatePresence>
         </div>
 

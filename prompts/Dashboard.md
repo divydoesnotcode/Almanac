@@ -1,4 +1,4 @@
-# AI Personal CFO — Dashboard Specification
+# The The Almanac — Dashboard Specification
 
 ## 1. Dashboard Philosophy
 
@@ -103,7 +103,7 @@ Keep the top navigation extremely clean.
 When sidebar is collapsed:
 
 ```text
-[Menu] AI Personal CFO
+[Menu] The The Almanac
 ```
 
 ### Right
@@ -779,7 +779,7 @@ Reflow the content intelligently.
 Mobile header:
 
 ```text
-☰     AI Personal CFO       👤
+☰     The The Almanac       👤
 ```
 
 Menu opens as a drawer.
@@ -817,7 +817,7 @@ Logout
 Desktop expanded:
 
 ```text
-AI Personal CFO
+The The Almanac
 
 Dashboard
 Transactions

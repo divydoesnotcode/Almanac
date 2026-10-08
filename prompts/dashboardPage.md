@@ -1,4 +1,4 @@
-# AI Personal CFO — Master Frontend Dashboard Prompt
+# The The Almanac — Master Frontend Dashboard Prompt
 
 You are a senior frontend engineer and product designer.
 
@@ -51,7 +51,7 @@ Use the existing design system consistently.
 
 The product is called:
 
-**AI Personal CFO**
+**The The Almanac**
 
 It is an AI-powered personal finance platform that helps users:
 

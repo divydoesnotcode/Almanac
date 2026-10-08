@@ -1,10 +1,10 @@
-# Almanac — Comprehensive End-to-End System Analysis
+# The Almanac — Comprehensive End-to-End System Analysis
 
 ---
 
 ## 1. System Architecture Overview
 
-**Almanac** is a full-stack personal finance and autonomous financial intelligence platform built with a modern decoupled client-server architecture:
+**The Almanac** is a full-stack personal finance and autonomous financial intelligence platform built with a modern decoupled client-server architecture:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
