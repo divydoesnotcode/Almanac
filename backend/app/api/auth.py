@@ -6,11 +6,18 @@ from fastapi import APIRouter, Depends, Request, Response, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import logging
+
 from backend.app.config import settings
 from backend.app.database import get_db_session
 from backend.app.schemas.auth import (
+    FirebaseAuthRequest,
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
     PublicUser,
     RefreshRequest,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
     SigninData,
     SigninRequest,
     SigninResponse,
@@ -20,19 +27,26 @@ from backend.app.schemas.auth import (
 from backend.app.services.auth_service import (
     EmailAlreadyRegisteredError,
     InvalidCredentialsError,
+    authenticate_or_register_firebase_user,
     authenticate_user,
     register_user,
+    request_password_reset,
+    reset_password_with_token,
     rotate_refresh_token,
     user_from_access_token,
 )
+from backend.app.services.email_service import send_password_reset_email
 from backend.app.api.deps import extract_access_token, token_jti
 from backend.app.services.account_service import revoke_current_session
 from backend.app.utils.security import (
     ACCESS_TOKEN_COOKIE,
     REFRESH_TOKEN_COOKIE,
+    InvalidAccessTokenError,
     access_token_cookie_max_age,
     refresh_token_cookie_max_age,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
@@ -154,6 +168,46 @@ async def signin(
         return _error(
             status.HTTP_401_UNAUTHORIZED,
             "Invalid email or password",
+        )
+
+    _set_access_cookie(response, access_token)
+    _set_refresh_cookie(response, refresh_token)
+
+    return SigninResponse(
+        success=True,
+        message="Signed in successfully",
+        data=SigninData(
+            user=PublicUser.model_validate(user),
+            token=access_token,
+            refresh_token=refresh_token,
+        ),
+    )
+
+
+@router.post(
+    "/firebase",
+    response_model=SigninResponse,
+    responses={
+        401: {"description": "Invalid credentials or token"},
+        422: {"description": "Validation error"},
+    },
+)
+async def signin_with_firebase(
+    payload: FirebaseAuthRequest,
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db_session),
+) -> SigninResponse | JSONResponse:
+    try:
+        user, access_token, refresh_token = await authenticate_or_register_firebase_user(
+            db,
+            id_token=payload.id_token,
+            user_agent=request.headers.get("user-agent"),
+        )
+    except InvalidCredentialsError as exc:
+        return _error(
+            status.HTTP_401_UNAUTHORIZED,
+            str(exc) or "Could not authenticate with identity provider",
         )
 
     _set_access_cookie(response, access_token)
@@ -307,3 +361,71 @@ async def signout(
         "message": "Signed out",
         "data": {"signedOut": True},
     }
+
+
+@router.post(
+    "/forgot-password",
+    response_model=ForgotPasswordResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        422: {"description": "Validation error"},
+    },
+)
+async def forgot_password(
+    payload: ForgotPasswordRequest,
+    db: AsyncSession = Depends(get_db_session),
+) -> ForgotPasswordResponse:
+    """Request a password reset link sent to the user's email via Google SMTP."""
+    should_send, user_name, reset_token = await request_password_reset(
+        db,
+        email=payload.email,
+    )
+
+    if should_send and reset_token:
+        frontend_url = settings.FRONTEND_URL.rstrip("/")
+        reset_url = f"{frontend_url}/reset-password?token={reset_token}"
+        try:
+            await send_password_reset_email(
+                to_email=payload.email,
+                user_name=user_name or "User",
+                reset_url=reset_url,
+            )
+        except Exception as exc:
+            logger.error("Failed to deliver password reset email to %s: %s", payload.email, exc, exc_info=True)
+            # Do not leak internal delivery failure to avoid exposing email status
+
+    return ForgotPasswordResponse(
+        success=True,
+        message="If an account is associated with this email, recovery instructions have been dispatched.",
+    )
+
+
+@router.post(
+    "/reset-password",
+    response_model=ResetPasswordResponse,
+    status_code=status.HTTP_200_OK,
+    responses={
+        400: {"description": "Invalid or expired token"},
+        422: {"description": "Validation error"},
+    },
+)
+async def reset_password(
+    payload: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db_session),
+) -> ResetPasswordResponse | JSONResponse:
+    """Verify reset token and update account password."""
+    try:
+        await reset_password_with_token(
+            db,
+            token=payload.token,
+            new_password=payload.password,
+        )
+    except InvalidAccessTokenError as exc:
+        return _error(status.HTTP_400_BAD_REQUEST, str(exc))
+    except InvalidCredentialsError as exc:
+        return _error(status.HTTP_400_BAD_REQUEST, str(exc) or "Invalid or expired recovery link")
+
+    return ResetPasswordResponse(
+        success=True,
+        message="Password has been reset successfully. You may now sign in with your new password.",
+    )

@@ -110,3 +110,52 @@ def refresh_token_cookie_max_age() -> int:
     """Refresh token cookie max-age in seconds."""
 
     return settings.REFRESH_TOKEN_EXPIRE_DAYS * 86_400
+
+
+def create_password_reset_token(
+    *,
+    user_id: UUID,
+    email: str,
+    token_version: int = 1,
+) -> str:
+    """Create a signed, time-limited JWT for password reset."""
+    now = datetime.now(timezone.utc)
+    expires = now + timedelta(minutes=settings.RESET_PASSWORD_TOKEN_EXPIRE_MINUTES)
+
+    payload: dict[str, Any] = {
+        "sub": str(user_id),
+        "email": email.strip().lower(),
+        "ver": int(token_version),
+        "purpose": "password_reset",
+        "iat": int(now.timestamp()),
+        "exp": int(expires.timestamp()),
+    }
+
+    return jwt.encode(
+        payload,
+        settings.SECRET_KEY,
+        algorithm=JWT_ALGORITHM,
+    )
+
+
+def decode_password_reset_token(token: str) -> dict[str, Any]:
+    """Decode and validate a password reset token."""
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+        )
+    except ExpiredSignatureError as exc:
+        raise InvalidAccessTokenError("Password reset link has expired.") from exc
+    except InvalidTokenError as exc:
+        raise InvalidAccessTokenError("Password reset link is invalid or corrupted.") from exc
+
+    if payload.get("purpose") != "password_reset":
+        raise InvalidAccessTokenError("Invalid token purpose.")
+
+    subject = payload.get("sub")
+    if not subject:
+        raise InvalidAccessTokenError("Invalid token subject.")
+
+    return payload

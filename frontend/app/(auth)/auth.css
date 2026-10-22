@@ -256,6 +256,28 @@
   color:          var(--auth-ink-faint);
 }
 
+.auth-forgot-link {
+  font-family:     var(--auth-mono);
+  font-size:       0.625rem;
+  letter-spacing:  0.12em;
+  text-transform:  uppercase;
+  color:           var(--auth-ink-dim);
+  text-decoration: none;
+  border-bottom:   1px solid transparent;
+  transition:      color 160ms ease, border-bottom-color 160ms ease;
+}
+
+.auth-forgot-link:hover,
+.auth-forgot-link:focus-visible {
+  color:               var(--auth-accent);
+  border-bottom-color: var(--auth-accent);
+}
+
+.auth-forgot-link:focus-visible {
+  outline:        1px solid var(--auth-accent);
+  outline-offset: 2px;
+}
+
 .auth-control { position: relative; }
 
 .auth-input {
@@ -431,6 +453,7 @@
 }
 
 .auth-status--error { color: var(--auth-danger); }
+.auth-status--ok    { color: var(--auth-accent); }
 
 .auth-alt { margin: 0.15rem 0 0; text-align: left; font-size: 0.875rem; color: var(--auth-ink-dim); }
 .auth-alt a {

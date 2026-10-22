@@ -8,8 +8,9 @@ import { z } from "zod";
 
 import { useEffect } from "react";
 import { fieldErrorsFromValidation, getApiErrorMessage } from "@/lib/api";
-import { signinRequest } from "@/lib/auth-api";
+import { firebaseAuthRequest, signinRequest } from "@/lib/auth-api";
 import { setAuthSession } from "@/lib/auth-storage";
+import { signInWithApplePopup, signInWithGooglePopup } from "@/lib/firebase";
 import { useAuth } from "@/lib/use-auth";
 
 const signinSchema = z.object({
@@ -37,12 +38,103 @@ function SigninFormInner() {
     registered ? "ok" : "idle",
   );
   const [submitting, setSubmitting] = useState(false);
+  const [oauthSubmitting, setOauthSubmitting] = useState<"google" | "apple" | null>(
+    null,
+  );
 
   useEffect(() => {
     if (authStatus !== "loading" && user) {
       router.replace("/dashboard");
     }
   }, [authStatus, user, router]);
+
+  async function handleOAuth(provider: "google" | "apple") {
+    setErrors({});
+    setOauthSubmitting(provider);
+    const providerLabel = provider === "google" ? "Google" : "Apple";
+    setStatus("");
+    setStatusTone("idle");
+
+    let focusTimer: NodeJS.Timeout | null = null;
+    const onWindowFocus = () => {
+      focusTimer = setTimeout(() => {
+        setOauthSubmitting(null);
+      }, 500);
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("focus", onWindowFocus, { once: true });
+    }
+
+    try {
+      const result =
+        provider === "google"
+          ? await signInWithGooglePopup()
+          : await signInWithApplePopup();
+
+      if (focusTimer) clearTimeout(focusTimer);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("focus", onWindowFocus);
+      }
+
+      setStatus("Signing in with account…");
+      const response = await firebaseAuthRequest({ id_token: result.idToken });
+
+      setAuthSession({
+        user: response.data.user,
+        token: response.data.token,
+        refreshToken: response.data.refresh_token,
+      });
+
+      setStatus("Signed in. Redirecting…");
+      setStatusTone("ok");
+      router.push("/dashboard");
+      router.refresh();
+    } catch (error: any) {
+      if (focusTimer) clearTimeout(focusTimer);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("focus", onWindowFocus);
+      }
+
+      const isCancelled =
+        error?.code === "auth/popup-closed-by-user" ||
+        error?.code === "auth/cancelled-popup-request" ||
+        error?.code === "auth/user-cancelled";
+
+      if (isCancelled) {
+        setStatus("");
+        setStatusTone("idle");
+      } else {
+        let fallbackMessage = `Unable to sign in with ${providerLabel}. Please try again.`;
+
+        if (error?.code === "auth/popup-blocked") {
+          fallbackMessage = "Pop-up window was blocked. Please allow pop-ups for this site and try again.";
+        } else if (error?.code === "auth/operation-not-allowed") {
+          fallbackMessage = `${providerLabel} sign-in is currently unavailable. Please use another sign-in method.`;
+        } else if (
+          error?.code === "auth/invalid-api-key" ||
+          error?.code === "auth/unauthorized-domain"
+        ) {
+          fallbackMessage = "Sign-in service is temporarily unavailable. Please try again shortly or contact support.";
+        } else if (error?.code === "auth/network-request-failed") {
+          fallbackMessage = "Network connection issue. Please check your internet connection and try again.";
+        } else if (error?.code === "auth/account-exists-with-different-credential") {
+          fallbackMessage = "An account already exists with this email using a different sign-in method.";
+        } else if (error?.code === "auth/user-disabled") {
+          fallbackMessage = "This account has been disabled. Please contact support.";
+        }
+
+        setStatus(getApiErrorMessage(error, fallbackMessage));
+        setStatusTone("error");
+      }
+    } finally {
+      if (focusTimer) clearTimeout(focusTimer);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("focus", onWindowFocus);
+      }
+      setOauthSubmitting(null);
+    }
+  }
 
   const initialHint = useMemo(
     () => (registered ? "Account created. Sign in to continue." : ""),
@@ -134,6 +226,7 @@ function SigninFormInner() {
           className="auth-input"
           name="email"
           type="email"
+          autoFocus
           autoComplete="email"
           inputMode="email"
           spellCheck={false}
@@ -154,7 +247,9 @@ function SigninFormInner() {
           <label className="auth-label" htmlFor={`${formId}-password`}>
             Password
           </label>
-          <span className="auth-hint">F.KEY</span>
+          <Link href="/forgot-password" className="auth-forgot-link">
+            Forgot password?
+          </Link>
         </div>
         <div className="auth-control">
           <input
@@ -204,7 +299,8 @@ function SigninFormInner() {
         <button
           type="button"
           className="auth-oauth-btn"
-          disabled={submitting}
+          disabled={submitting || Boolean(oauthSubmitting)}
+          onClick={() => handleOAuth("google")}
           aria-label="Sign in with Google"
         >
           <svg className="auth-oauth-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
@@ -231,7 +327,8 @@ function SigninFormInner() {
         <button
           type="button"
           className="auth-oauth-btn"
-          disabled={submitting}
+          disabled={submitting || Boolean(oauthSubmitting)}
+          onClick={() => handleOAuth("apple")}
           aria-label="Sign in with Apple"
         >
           <svg className="auth-oauth-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">

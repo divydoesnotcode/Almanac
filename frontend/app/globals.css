@@ -685,6 +685,106 @@ select option {
   color: var(--cfo-success);
 }
 
+/* ── Password Strength Meter ──────────────────────────────────────────────── */
+.cfo-strength,
+.auth-strength {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+  margin-bottom: 0.25rem;
+}
+
+.cfo-strength-header,
+.auth-strength-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--cfo-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.cfo-strength-title,
+.auth-strength-title {
+  color: var(--cfo-ink-faint);
+}
+
+.cfo-strength-value,
+.auth-strength-value {
+  font-weight: 600;
+  transition: color var(--cfo-duration) var(--cfo-ease);
+}
+
+.cfo-strength-value--0, .auth-strength-value--0 { color: var(--cfo-ink-faint); }
+.cfo-strength-value--1, .auth-strength-value--1 { color: var(--cfo-danger); }
+.cfo-strength-value--2, .auth-strength-value--2 { color: var(--cfo-warn); }
+.cfo-strength-value--3, .auth-strength-value--3 { color: var(--cfo-accent); }
+.cfo-strength-value--4, .auth-strength-value--4 { color: var(--cfo-success); }
+
+.cfo-strength-bars,
+.auth-strength-bars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  height: 3px;
+  width: 100%;
+}
+
+.cfo-strength-bar,
+.auth-strength-bar {
+  height: 100%;
+  background: var(--cfo-line);
+  transition: background-color 200ms var(--cfo-ease);
+}
+
+.cfo-strength-bar--active-1, .auth-strength-bar--active-1 { background-color: var(--cfo-danger); }
+.cfo-strength-bar--active-2, .auth-strength-bar--active-2 { background-color: var(--cfo-warn); }
+.cfo-strength-bar--active-3, .auth-strength-bar--active-3 { background-color: var(--cfo-accent); }
+.cfo-strength-bar--active-4, .auth-strength-bar--active-4 { background-color: var(--cfo-success); }
+
+.cfo-strength-rules,
+.auth-strength-rules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  margin-top: 0.15rem;
+}
+
+.cfo-strength-rule,
+.auth-strength-rule {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--cfo-mono);
+  font-size: 0.585rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cfo-ink-faint);
+  transition: color var(--cfo-duration) var(--cfo-ease);
+}
+
+.cfo-strength-rule--met,
+.auth-strength-rule--met {
+  color: var(--cfo-ink);
+}
+
+.cfo-strength-rule-dot,
+.auth-strength-rule-dot {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: var(--cfo-line-strong);
+  transition: background-color var(--cfo-duration) var(--cfo-ease);
+}
+
+.cfo-strength-rule--met .cfo-strength-rule-dot,
+.auth-strength-rule--met .auth-strength-rule-dot {
+  background-color: var(--cfo-success);
+}
+
 /* ── 11. BUTTONS ─────────────────────────────────────────────────────────── */
 /*
   .cfo-btn         — base shared button traits

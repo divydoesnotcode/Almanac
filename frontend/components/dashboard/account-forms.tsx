@@ -401,6 +401,52 @@ function agentLabel(value: string) {
   return text.length > 72 ? `${text.slice(0, 69)}…` : text;
 }
 
+type PasswordStrength = {
+  score: number;
+  label: string;
+  hasMinLength: boolean;
+  hasLetter: boolean;
+  hasNumber: boolean;
+  hasSpecialOrUpper: boolean;
+};
+
+function calculatePasswordStrength(pass: string): PasswordStrength {
+  if (!pass) {
+    return {
+      score: 0,
+      label: "INITIAL",
+      hasMinLength: false,
+      hasLetter: false,
+      hasNumber: false,
+      hasSpecialOrUpper: false,
+    };
+  }
+
+  const hasMinLength = pass.length >= 8;
+  const hasLetter = /[a-zA-Z]/.test(pass);
+  const hasNumber = /[0-9]/.test(pass);
+  const hasSpecialOrUpper =
+    /[^a-zA-Z0-9]/.test(pass) ||
+    (/[a-z]/.test(pass) && /[A-Z]/.test(pass));
+
+  let score = 0;
+  if (hasMinLength) score += 1;
+  if (hasLetter) score += 1;
+  if (hasNumber) score += 1;
+  if (hasMinLength && (hasSpecialOrUpper || pass.length >= 12)) score += 1;
+
+  const labels = ["INITIAL", "WEAK", "FAIR", "GOOD", "STRONG"];
+
+  return {
+    score,
+    label: labels[score] ?? "WEAK",
+    hasMinLength,
+    hasLetter,
+    hasNumber,
+    hasSpecialOrUpper,
+  };
+}
+
 export function SecurityPanel() {
   const { session, endSession } = useAuth();
   const [security, setSecurity] = useState<SecuritySnapshot | null>(null);
@@ -414,6 +460,19 @@ export function SecurityPanel() {
   const [tone, setTone] = useState<"idle" | "error" | "ok">("idle");
   const [message, setMessage] = useState("");
   const [sessionBusy, setSessionBusy] = useState<string | null>(null);
+
+  const strength = calculatePasswordStrength(newPassword);
+  const isCriteriaMatched =
+    strength.hasMinLength &&
+    strength.hasLetter &&
+    strength.hasNumber;
+  const isPasswordConfirmed =
+    confirmPassword.length > 0 && confirmPassword === newPassword;
+  const canSubmitPassword =
+    currentPassword.trim().length > 0 &&
+    isCriteriaMatched &&
+    isPasswordConfirmed &&
+    !busy;
 
   useEffect(() => {
     let cancelled = false;
@@ -436,9 +495,17 @@ export function SecurityPanel() {
 
   async function onPassword(event: FormEvent) {
     event.preventDefault();
-    if (newPassword !== confirmPassword) {
-      setTone("error");
-      setMessage("Passwords do not match");
+    if (!canSubmitPassword) {
+      if (!isCriteriaMatched) {
+        setTone("error");
+        setMessage("New password does not meet security criteria");
+        return;
+      }
+      if (!isPasswordConfirmed) {
+        setTone("error");
+        setMessage("Passwords do not match");
+        return;
+      }
       return;
     }
     setBusy(true);
@@ -562,6 +629,70 @@ export function SecurityPanel() {
                 {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
+            {newPassword.length > 0 && (
+              <div className="cfo-strength" aria-live="polite">
+                <div className="cfo-strength-header">
+                  <span className="cfo-strength-title">Entropy // Key strength</span>
+                  <span className={`cfo-strength-value cfo-strength-value--${strength.score}`}>
+                    {strength.label}
+                  </span>
+                </div>
+
+                <div
+                  className="cfo-strength-bars"
+                  role="progressbar"
+                  aria-valuenow={strength.score}
+                  aria-valuemin={0}
+                  aria-valuemax={4}
+                >
+                  {[1, 2, 3, 4].map((barIndex) => (
+                    <div
+                      key={barIndex}
+                      className={`cfo-strength-bar ${
+                        barIndex <= strength.score
+                          ? `cfo-strength-bar--active-${strength.score}`
+                          : ""
+                      }`}
+                    />
+                  ))}
+                </div>
+
+                <div className="cfo-strength-rules">
+                  <span
+                    className={`cfo-strength-rule ${
+                      strength.hasMinLength ? "cfo-strength-rule--met" : ""
+                    }`}
+                  >
+                    <span className="cfo-strength-rule-dot" aria-hidden="true" />
+                    8+ Chars
+                  </span>
+                  <span
+                    className={`cfo-strength-rule ${
+                      strength.hasLetter ? "cfo-strength-rule--met" : ""
+                    }`}
+                  >
+                    <span className="cfo-strength-rule-dot" aria-hidden="true" />
+                    Letter
+                  </span>
+                  <span
+                    className={`cfo-strength-rule ${
+                      strength.hasNumber ? "cfo-strength-rule--met" : ""
+                    }`}
+                  >
+                    <span className="cfo-strength-rule-dot" aria-hidden="true" />
+                    Number
+                  </span>
+                  <span
+                    className={`cfo-strength-rule ${
+                      strength.hasSpecialOrUpper ? "cfo-strength-rule--met" : ""
+                    }`}
+                  >
+                    <span className="cfo-strength-rule-dot" aria-hidden="true" />
+                    Symbol / Upper
+                  </span>
+                </div>
+              </div>
+            )}
           </Field>
           <Field label="Confirm new password">
             <input
@@ -572,6 +703,11 @@ export function SecurityPanel() {
               required
               autoComplete="new-password"
             />
+            {confirmPassword.length > 0 && confirmPassword !== newPassword && (
+              <p className="cfo-error" role="alert" style={{ marginTop: "0.25rem" }}>
+                Passwords do not match
+              </p>
+            )}
           </Field>
           <p className="cfo-hint">
             Last changed{" "}
@@ -580,7 +716,7 @@ export function SecurityPanel() {
               : "never on record"}
           </p>
           <FormStatus tone={tone} message={message} />
-          <button type="submit" className="cfo-btn cfo-btn--ghost" disabled={busy}>
+          <button type="submit" className="cfo-btn cfo-btn--ghost" disabled={!canSubmitPassword}>
             {busy ? "Updating…" : "Update password"}
           </button>
         </form>

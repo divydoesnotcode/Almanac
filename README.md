@@ -66,17 +66,17 @@
 
 | Subsystem | Endpoint / Surface | Build Status | Description |
 | :--- | :--- | :---: | :--- |
-| **Authentication** | `/api/auth/*` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Argon2 password hashing, rotating refresh tokens with 30s grace window, cross-domain body/cookie fallback, zero-flash refresh |
-| **Guided Onboarding** | `/onboarding`, `/api/onboarding/*` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | 5-Step interactive wizard: Account setup, Income baseline, Monthly budget caps, Milestone goals, and Financial preferences |
-| **Command Center** | `/dashboard` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | 7D/30D/3M/6M/1Y cashflow charts, Financial Health score (0-100), net worth delta, instant action prompts |
-| **Account Management** | `/settings?tab=accounts`, `/accounts` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Manage bank accounts, credit cards, investments, and loans created during or after onboarding |
-| **Transactions Engine** | `/transactions` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Income, Expense, Transfer, Pending movements, category tagging, account balance auto-adjustment |
-| **Budget Control** | `/budgets` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Category monthly limit tracking, budget utilization gauges, right-aligned Edit & Delete actions |
-| **Goal Tracker** | `/goals` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Milestone targets, priority badges, progress bars, interactive Goal Edit and Delete modals |
+| **Authentication** | `/api/auth/*` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Argon2 password hashing, rotating refresh tokens with 30s grace window, Firebase OAuth, Google SMTP reset |
+| **Guided Onboarding** | `/onboarding`, `/api/onboarding/*`, `/api/getting-started/*` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | 5-Step interactive wizard: Account setup, Income baseline, Monthly budget caps, Milestone goals, and Financial preferences |
+| **Command Center** | `/dashboard`, `/api/dashboard` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | 7D/30D/3M/6M/1Y cashflow charts, Financial Health score (0-100), net worth delta, instant action prompts |
+| **Account Management** | `/settings?tab=accounts`, `/accounts`, `/api/accounts/*` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Manage bank accounts, credit cards, investments, and loans created during or after onboarding |
+| **Transactions Engine** | `/transactions`, `/api/transactions/*` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Income, Expense, Transfer, Pending movements, category tagging, account balance auto-adjustment |
+| **Budget Control** | `/budgets`, `/api/budgets/*` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Category monthly limit tracking, budget utilization gauges, right-aligned Edit & Delete actions |
+| **Goal Tracker** | `/goals`, `/api/goals/*` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Milestone targets, priority badges, progress bars, interactive Goal Edit and Delete modals |
 | **Investments Hub** | `/investments` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Portfolio asset breakdown, gain/loss indicators, account management with full CRUD |
 | **Debt & Liabilities** | `/debt` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Credit cards, personal/home loans, interest tracking, paydown cards with Edit & Delete |
 | **Financial Reports** | `/reports` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | **4 Core Reports**: Monthly Statement (P&L + Balance Sheet + PDF Print), Historical Comparison, Tax Audit, Lifestyle Leak Detection |
-| **Settings & Categories** | `/settings` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Manage Accounts, Category CRUD (Create, Edit, Soft-Delete), Financial Policy limits, Active Session Security manager |
+| **Settings & Security** | `/settings`, `/api/profile`, `/api/settings`, `/api/preferences`, `/api/security/*` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | Manage Profile, Category CRUD, Financial Policy limits, Workspace UI density, Active Session Security manager |
 | **Data Portability** | `/settings?tab=data` | <img src="https://img.shields.io/badge/●_LIVE-c45c26?style=flat-square&labelColor=0b0b0a"> | 1-Click CSV transaction exporter, Complete Ledger JSON full-fidelity backup |
 | **AI Co-Pilot** | `/cfo` | <img src="https://img.shields.io/badge/◌_IN_FLIGHT-5c5850?style=flat-square&labelColor=0b0b0a"> | In-app CFO conversation drawer, RAG tool integration with live PostgreSQL ledger |
 
@@ -161,38 +161,58 @@ erDiagram
 
 All API endpoints strictly communicate over JSON. Authenticated requests support `Authorization: Bearer <access_token>` with automatic fallback to HttpOnly cookies and JSON refresh payloads.
 
-### 🔑 Authentication
+### 🔑 Authentication & Identity
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `POST` | `/api/auth/signup` | Register new account with Argon2 password hashing |
-| `POST` | `/api/auth/signin` | Sign in, receive access JWT & refresh credentials |
-| `POST` | `/api/auth/refresh` | Rotate refresh token (supports cookie and JSON payload) |
-| `GET` | `/api/auth/me` | Fetch active user credentials |
+| `POST` | `/api/auth/signin` | Sign in with email/password, receive access JWT & refresh credentials |
+| `POST` | `/api/auth/firebase` | Sign in or sign up via Firebase OAuth ID token |
+| `POST` | `/api/auth/refresh` | Rotate refresh token (supports HttpOnly cookie and JSON body payload) |
+| `GET` | `/api/auth/me` | Fetch active authenticated user credentials |
 | `POST` | `/api/auth/signout` | Revoke session and clear authentication cookies |
+| `POST` | `/api/auth/forgot-password` | Request password reset email dispatched via Google SMTP |
+| `POST` | `/api/auth/reset-password` | Verify recovery token and update account password |
 
-### 🚀 Onboarding Wizard
+### 📊 Command Center & Telemetry
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/api/onboarding/status` | Retrieve current user's onboarding completion status and step |
-| `POST` | `/api/onboarding/step-1` | Save initial bank, cash, card, and investment accounts |
-| `POST` | `/api/onboarding/step-2` | Save income baseline and initial expense categories |
-| `POST` | `/api/onboarding/step-3` | Save initial monthly category budget limits |
-| `POST` | `/api/onboarding/step-4` | Save milestone financial goals |
-| `POST` | `/api/onboarding/step-5` | Save currency, risk tolerance, and finalize onboarding |
+| `GET` | `/api/dashboard` | Fetch aggregated telemetry: Net Worth, Liquid Reserves, Cashflow trajectory (`7D`, `30D`, `3M`, `6M`, `1Y`), Health Score (0-100), Burn Rate & Actionable Insights |
 
-### 💳 Ledger & Accounts
+### 🚀 Guided Onboarding & Setup
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/onboarding/getting-started` | Retrieve onboarding progress, initialization state & first-time telemetry |
+| `GET` | `/api/getting-started/status` | Alias for getting-started initialization status check |
+| `POST` | `/api/onboarding/step-1` | Save initial bank, cash, card, and investment accounts |
+| `DELETE` | `/api/onboarding/accounts/{id}` | Remove a specific onboarding account (resets to Step 1 if empty) |
+| `DELETE` | `/api/onboarding/accounts` | Clear all onboarding accounts and reset setup |
+| `POST` | `/api/onboarding/step-2` | Save monthly income baseline & record opening inflow transaction |
+| `POST` | `/api/onboarding/step-3` | Save savings target %, emergency fund months, and risk tolerance |
+| `POST` | `/api/onboarding/step-4` | Persist initial monthly category budget limits |
+| `DELETE` | `/api/onboarding/budgets/{id}` | Remove onboarding budget cap for a category |
+| `DELETE` | `/api/onboarding/budgets` | Clear all onboarding category budget limits |
+| `POST` | `/api/onboarding/complete` | Finalize onboarding setup and activate live workspace |
+
+### 💳 Accounts & Categories
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `GET` | `/api/accounts` | Retrieve active user accounts (Bank, Savings, Investment, Loan, Card) |
 | `POST` | `/api/accounts` | Open a new account with initial balance |
 | `PUT` | `/api/accounts/{id}` | Update account details, name, or balance |
 | `DELETE` | `/api/accounts/{id}` | Deactivate/remove an account |
-| `GET` | `/api/transactions` | Query transaction ledger (`limit` up to 5000 for historical reports) |
-| `POST` | `/api/transactions` | Record transaction (income, expense, transfer, pending) |
 | `GET` | `/api/categories` | Retrieve all system and user categories |
 | `POST` | `/api/categories` | Create custom transaction category |
 | `PUT` | `/api/categories/{id}` | Update category name and description |
 | `DELETE` | `/api/categories/{id}` | Soft-delete category |
+
+### 💸 Transactions Engine
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/transactions` | Query transaction ledger (supports `limit` up to 5000 for historical reporting) |
+| `GET` | `/api/transactions/{id}` | Retrieve single transaction details by ID |
+| `POST` | `/api/transactions` | Record transaction (income, expense, transfer, pending) with auto balance adjustment |
+| `PUT` | `/api/transactions/{id}` | Update transaction details, category, or amount with balance delta sync |
+| `DELETE` | `/api/transactions/{id}` | Delete transaction and restore account balance |
 
 ### 🎯 Goals & Budgets
 | Method | Endpoint | Description |
@@ -201,9 +221,30 @@ All API endpoints strictly communicate over JSON. Authenticated requests support
 | `PUT` | `/api/budgets` | Upsert monthly limit for a category |
 | `DELETE` | `/api/budgets/{id}` | Delete category budget limit |
 | `GET` | `/api/goals` | List financial milestone goals |
-| `POST` | `/api/goals` | Create target goal (emergency fund, house, vehicle, etc.) |
-| `PUT` | `/api/goals/{id}` | Update goal target, date, priority, or current amount |
+| `POST` | `/api/goals` | Create target goal (emergency fund, house, vehicle, retirement) |
+| `PUT` | `/api/goals/{id}` | Update goal target amount, target date, priority, or current savings |
 | `DELETE` | `/api/goals/{id}` | Cancel/delete financial goal |
+
+### ⚙️ Profile, Preferences & Security Sessions
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/profile` | Retrieve authenticated user profile (name, email, join date) |
+| `PATCH` | `/api/profile` | Update user profile details (name, email) |
+| `GET` | `/api/settings` | Retrieve workspace UI settings (layout density, alert preferences) |
+| `PATCH` | `/api/settings` | Update workspace preferences (`comfortable` / `compact`, budget/goal notifications) |
+| `GET` | `/api/preferences` | Retrieve financial policy (currency, risk tolerance, savings %, emergency months) |
+| `PATCH` | `/api/preferences` | Update financial policy rules and targets |
+| `GET` | `/api/security` | List active device sessions and password modification timestamp |
+| `POST` | `/api/security/password` | Change account password, rotate tokens, and re-authenticate current session |
+| `POST` | `/api/security/sessions/{id}/revoke` | Revoke a specific active remote device session |
+| `POST` | `/api/security/signout-all` | Revoke all active device sessions and force sign-out everywhere |
+
+### 🩺 System & Health
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/` | API service metadata, version, and running status |
+| `GET` | `/health` | Lightweight liveness probe for orchestrators and uptime monitors |
+| `GET` | `/ready` | Application readiness probe validating system dependencies |
 
 ---
 
@@ -265,6 +306,75 @@ npm run dev
 ```
 
 ---
+
+### 🔐 External Services & Credentials Configuration
+
+#### 🔥 1. Firebase Authentication Setup (Google OAuth)
+The Almanac supports 1-click Google OAuth sign-in and account provisioning through Firebase on both Next.js and FastAPI:
+
+1. **Create or Open Firebase Project**:
+   - Go to the [Firebase Console](https://console.firebase.google.com/) and create a project (or select an existing one).
+   - In the sidebar, navigate to **Build** ➔ **Authentication** ➔ click **Get Started**.
+   - Under the **Sign-in method** tab, enable the **Google** provider.
+   - In the **Authorized domains** section (bottom of the Sign-in method tab), verify `localhost` is listed. Add your production domain (e.g. `your-app.vercel.app`) when deploying.
+
+2. **Configure Frontend Web Credentials**:
+   - Go to **Project Settings** (⚙️) ➔ **General** ➔ scroll to **Your apps**.
+   - If you haven't created a Web app yet, click the **Web icon (`</>`)** and register the app.
+   - Under **SDK setup and configuration**, select **Config** and copy the values into `frontend/.env` (or `frontend/.env.local`):
+   ```env
+   NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSy...
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your-project-id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your-sender-id
+   NEXT_PUBLIC_FIREBASE_APP_ID=1:1234567890:web:...
+   ```
+
+3. **Configure Backend ID Token Verification**:
+   - In your root `.env` (or server environment variables), set the matching Firebase credentials:
+   ```env
+   FIREBASE_PROJECT_ID=your-project-id
+   FIREBASE_API_KEY=AIzaSy...
+   ```
+   > [!NOTE]
+   > The backend verifies incoming Firebase ID tokens directly against Google Identity Services at `/api/auth/firebase`. New users signing in via Google are automatically registered and provisioned in the ledger.
+
+---
+
+#### 📬 2. Google SMTP Email Configuration (Password Recovery)
+The Almanac uses `fastapi-mail` and Google SMTP to dispatch password recovery links with secure single-use tokens (`/api/auth/forgot-password`).
+
+1. **Generate a Google App Password**:
+   - Navigate to your Google Account security center: [myaccount.google.com/security](https://myaccount.google.com/security).
+   - Verify that **2-Step Verification** is turned **ON** for your Google account.
+   - In the search bar at the top, search for **App passwords** (or visit [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)).
+   - In the **App name** field, enter `The Almanac` (or `Personal CFO`) and click **Create**.
+   - Google will display a 16-character password (e.g., `abcd efgh ijkl mnop`). Copy this password.
+
+2. **Configure Root `.env`**:
+   - Paste your Gmail and App Password into the root `.env` file:
+   ```env
+   # Email / SMTP Configuration (Gmail)
+   MAIL_USERNAME=your-email@gmail.com
+   MAIL_PASSWORD=your-16-char-google-app-password
+   MAIL_FROM=your-email@gmail.com
+   MAIL_FROM_NAME="The Almanac"
+   MAIL_SERVER=smtp.gmail.com
+   MAIL_PORT=465
+   MAIL_STARTTLS=False
+   MAIL_SSL_TLS=True
+
+   # Frontend recovery redirection
+   FRONTEND_URL=http://localhost:3000
+   RESET_PASSWORD_TOKEN_EXPIRE_MINUTES=30
+   ```
+
+   > [!TIP]
+   > **Port & SSL/TLS Configuration:**
+   > - **Port 465 (Default / Recommended)**: Connects using SSL/TLS directly (`MAIL_SSL_TLS=True`, `MAIL_STARTTLS=False`).
+   > - **Port 587 (Alternative)**: Connects using STARTTLS negotiation (`MAIL_SSL_TLS=False`, `MAIL_STARTTLS=True`).
+   > - `FRONTEND_URL` is used to construct the password reset link: `${FRONTEND_URL}/reset-password?token=<recovery_token>`. Ensure this matches your active frontend origin.
 
 ## 05 / Financial Integrity & Security Principles
 

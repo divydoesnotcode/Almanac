@@ -59,11 +59,25 @@ class Settings(BaseSettings):
 
     LLM_API_KEY: str | None = None
     LLM_MODEL: str | None = None
+    FIREBASE_PROJECT_ID: str | None = "your_new_project_id"
+    FIREBASE_API_KEY: str | None = "your_new_api_key"
 
     CORS_ORIGINS: list[str] = [
         "http://localhost:3000",
         "http://localhost:5678",
     ]
+
+    # Email / SMTP Configuration (Gmail)
+    MAIL_USERNAME: str = ""
+    MAIL_PASSWORD: str = ""
+    MAIL_FROM: str = ""
+    MAIL_FROM_NAME: str = "The Almanac"
+    MAIL_SERVER: str = "smtp.gmail.com"
+    MAIL_PORT: int = 465
+    MAIL_STARTTLS: bool = False
+    MAIL_SSL_TLS: bool = True
+    FRONTEND_URL: str = "http://localhost:5678"
+    RESET_PASSWORD_TOKEN_EXPIRE_MINUTES: int = 30
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

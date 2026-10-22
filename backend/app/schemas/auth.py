@@ -75,6 +75,10 @@ class SigninRequest(BaseModel):
         return _normalize_email(value)
 
 
+class FirebaseAuthRequest(BaseModel):
+    id_token: str = Field(min_length=1)
+
+
 class PublicUser(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -107,4 +111,33 @@ class SigninResponse(BaseModel):
 
 class AuthErrorResponse(BaseModel):
     success: bool = False
+    message: str
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str = Field(min_length=3, max_length=320)
+
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, value: str) -> str:
+        return _normalize_email(value)
+
+
+class ForgotPasswordResponse(BaseModel):
+    success: bool = True
+    message: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=1)
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        return _validate_password(value)
+
+
+class ResetPasswordResponse(BaseModel):
+    success: bool = True
     message: str

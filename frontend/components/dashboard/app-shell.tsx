@@ -151,16 +151,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className={`dash-root${isGettingStarted ? " dash-root--onboarding" : ""}`}>
         <LoadingIndicator active={loading || refreshing} />
         {!isGettingStarted && (
-          <aside
+          <motion.aside
             className={`dash-sidebar${collapsed ? " dash-sidebar--collapsed" : ""}`}
             aria-label="Primary"
+            initial={false}
+            animate={{ width: collapsed ? 64 : 232 }}
+            transition={{ duration, ease: [0.22, 1, 0.36, 1] }}
           >
             <Sidebar
               collapsed={collapsed}
               onToggle={toggleCollapsed}
               onLogout={requestLogout}
             />
-          </aside>
+          </motion.aside>
         )}
 
         <div className="dash-main">

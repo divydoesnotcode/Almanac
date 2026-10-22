@@ -29,6 +29,7 @@ debugpy==1.8.21
 defusedxml==0.7.1
 executing==2.2.1
 fastapi==0.141.1
+fastapi-mail>=1.4.1
 fastjsonschema==2.22.2
 filelock==3.32.3
 fonttools==4.63.0
